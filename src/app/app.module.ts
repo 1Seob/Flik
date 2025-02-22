@@ -4,11 +4,12 @@ import { AppService } from './app.service';
 import { configModule } from './modules/config.module';
 import { LoggerMiddleware } from '../common/middlewares/logger.middleware';
 import { CommonModule } from '../common/common.module';
-import { UserModule } from 'src/user/user.module';
+import { UserModule } from '../user/user.module';
 import { AuthModule } from '../auth/auth.module';
+import { BookModule } from '../book/book.module';
 
 @Module({
-  imports: [AuthModule, UserModule, configModule, CommonModule],
+  imports: [AuthModule, UserModule, BookModule, configModule, CommonModule],
   controllers: [AppController],
   providers: [AppService],
 })
