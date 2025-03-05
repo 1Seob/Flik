@@ -1,128 +1,140 @@
 import * as fs from 'fs';
 
+/**
+ *
+ * 1) 빈 줄을 기준으로 문단 분리
+ * 2) 너무 긴 문단(MAX_LEN 초과)은 문장 단위로 쪼개서 분할
+ * 3) 너무 짧은 문단(MIN_LEN 미만)은 다음 문단과 합쳐서 길이 조정
+ * 4) 최종 결과를 순서대로 반환
+ *
+ * @param filePath  TXT 파일 이름
+ * @returns         파싱된 문단 배열(순서 유지)
+ */
+
 export function parsing(fileName: string): string[] {
-  //--------------------------
-  // 0) 파라미터 설정
-  //--------------------------
-  const FILE_PATH: string = fileName; // 실제 파일 경로
-  const MIN_LEN: number = 1000; // 최소 문자수
-  const MAX_LEN: number = 1200; // 최대 문자수
-  const START_RATIO: number = 0.1;
-  const END_RATIO: number = 0.9;
-
-  //--------------------------
   // 1) 파일 읽기
-  //--------------------------
-  // fs.readFileSync의 결과를 string으로 처리할 것이므로 'utf-8' 옵션 지정
-  let rawText: string = fs.readFileSync(FILE_PATH, 'utf-8');
-  //--------------------------
-  // 2) 줄 단위로 읽어, 빈 줄이 나오면 문단 구분
-  //--------------------------
-  const lines: string[] = rawText.replace(/\r\n/g, '\n').split('\n');
+  let rawText = fs.readFileSync(fileName, 'utf-8');
 
-  // 문단을 담을 배열
-  let paragraphs: string[] = [];
-  // 현재 문단을 임시 저장할 배열
+  const minLen = 1000; //문단 최소 길이(문자 수)
+  const maxLen = 1300; //문단 최대 길이(문자 수)
+
+  // 2) 빈 줄을 기준으로 문단 분리
+  const lines = rawText.replace(/\r\n/g, '\n').split('\n');
+  const paragraphs: string[] = [];
   let bufferArr: string[] = [];
 
   for (const line of lines) {
-    const trimmed: string = line.trim();
+    const trimmed = line.trim();
     if (trimmed === '') {
       // 빈 줄 => 문단 구분
       if (bufferArr.length > 0) {
-        // bufferArr에 모은 줄들을 합쳐 하나의 문단
         paragraphs.push(bufferArr.join(' '));
         bufferArr = [];
       }
     } else {
-      // 빈 줄이 아니면 계속 같은 문단에 합침
       bufferArr.push(trimmed);
     }
   }
-  // 파일 끝까지 돌고 나서 남은 줄이 있으면 마지막 문단으로 추가
+  // 마지막 문단
   if (bufferArr.length > 0) {
     paragraphs.push(bufferArr.join(' '));
   }
 
-  //--------------------------
-  // 3) 중간 구간만 사용
-  //--------------------------
-  const startIdx: number = Math.floor(paragraphs.length * START_RATIO);
-  const endIdx: number = Math.floor(paragraphs.length * END_RATIO);
-  paragraphs = paragraphs.slice(startIdx, endIdx);
+  // 3) 문장이 너무 긴 문단을 "문장 단위"로 쪼개는 함수 (내부 함수)
+  function splitParagraphByMaxLength(
+    paragraph: string,
+    maxLen: number,
+  ): string[] {
+    // (3-A) 정규식으로 문장 추출: 구두점(.?! ) 뒤에 공백 또는 문장 끝을 문장 경계로
+    const sentenceRegex = /[^.?!]+[.?!]+(\s+|$)/g;
+    const sentences: string[] = [];
+    let match: RegExpExecArray | null;
 
-  //--------------------------
-  // 4) 짧은 문단 합치기 / 긴 문단 제외
-  //--------------------------
-  const mergedParagraphs: string[] = [];
-  let buffer: string = '';
+    while ((match = sentenceRegex.exec(paragraph)) !== null) {
+      const s = match[0].trim();
+      if (s) sentences.push(s);
+    }
 
-  for (let i = 0; i < paragraphs.length; i++) {
-    const current: string = paragraphs[i];
-    const curLen: number = current.length;
+    // 마지막 문장이 구두점으로 안 끝날 수 있으므로 남은 부분 처리
+    const lastIdx = sentenceRegex.lastIndex;
+    if (lastIdx < paragraph.length) {
+      const tail = paragraph.slice(lastIdx).trim();
+      if (tail) sentences.push(tail);
+    }
 
-    // (A) 너무 긴 문단(> MAX_LEN) => 제외
-    if (curLen > MAX_LEN) {
-      // 버퍼가 적당한 길이면 push
-      if (buffer.length >= MIN_LEN && buffer.length <= MAX_LEN) {
-        mergedParagraphs.push(buffer);
+    // (3-B) 문장들(sentences)을 합치면서 길이 제한(maxLen) 이하로 chunk 생성
+    const result: string[] = [];
+    let buffer = '';
+
+    for (const sentence of sentences) {
+      const next = buffer ? buffer + ' ' + sentence : sentence;
+      if (next.length <= maxLen) {
+        // 합쳐도 OK
+        buffer = next;
+      } else {
+        // 합치면 초과 -> buffer를 결과에 확정
+        if (buffer) {
+          result.push(buffer);
+        }
+        // sentence 자체가 maxLen을 초과하면(드문 케이스), 통째로 넣고 비움
+        if (sentence.length > maxLen) {
+          result.push(sentence);
+          buffer = '';
+        } else {
+          buffer = sentence;
+        }
       }
-      buffer = '';
+    }
+
+    // 남은 buffer
+    if (buffer) {
+      result.push(buffer);
+    }
+
+    return result;
+  }
+
+  // 3) 각 문단이 너무 긴 경우, 문장 단위로 나눠서 여러 개로 만든다
+  let splittedParagraphs: string[] = [];
+  for (const paragraph of paragraphs) {
+    if (paragraph.length > maxLen) {
+      // 길이 초과 -> 문장 단위로 쪼갬
+      const chunks = splitParagraphByMaxLength(paragraph, maxLen);
+      splittedParagraphs.push(...chunks);
+    } else {
+      splittedParagraphs.push(paragraph);
+    }
+  }
+
+  // 4) 너무 짧은 문단(MIN_LEN 미만)은 다음 문단과 합쳐본다
+  //    순서 유지, 중간에 끊지 않는다
+  const finalParagraphs: string[] = [];
+  let buffer = '';
+
+  for (let i = 0; i < splittedParagraphs.length; i++) {
+    const current = splittedParagraphs[i];
+    if (!buffer) {
+      // 버퍼가 비어 있으면 현재 문단을 버퍼로
+      buffer = current;
       continue;
     }
 
-    // (B) 적당한 길이 범위(MIN_LEN ~ MAX_LEN)에 있는 문단
-    if (curLen >= MIN_LEN && curLen <= MAX_LEN) {
-      if (!buffer) {
-        // 버퍼가 비어있으면 바로 추가
-        mergedParagraphs.push(current);
-      } else {
-        // 버퍼와 합치면 길이 확인
-        const combined: string = buffer + ' ' + current;
-        if (combined.length <= MAX_LEN) {
-          mergedParagraphs.push(combined);
-        } else {
-          // 합치면 초과된다면, 먼저 버퍼만 저장
-          if (buffer.length >= MIN_LEN) {
-            mergedParagraphs.push(buffer);
-          }
-          // 현재 문단은 따로 추가
-          mergedParagraphs.push(current);
-        }
-        // 버퍼 비움
-        buffer = '';
-      }
-    }
-    // (C) 너무 짧은 문단(< MIN_LEN) => 버퍼에 합치기
-    else {
-      if (!buffer) {
-        buffer = current;
-      } else {
-        const temp: string = buffer + ' ' + current;
-        if (temp.length <= MAX_LEN) {
-          buffer = temp;
-        } else {
-          // 합치면 초과 => 버퍼가 적정 길이면 push
-          if (buffer.length >= MIN_LEN && buffer.length <= MAX_LEN) {
-            mergedParagraphs.push(buffer);
-          }
-          // 그리고 새 버퍼 설정
-          buffer = current.length <= MAX_LEN ? current : '';
-        }
-      }
-
-      // 합친 결과가 적정 길이면 push 후 버퍼 비움
-      if (buffer.length >= MIN_LEN && buffer.length <= MAX_LEN) {
-        mergedParagraphs.push(buffer);
-        buffer = '';
-      }
+    const combined = buffer + ' ' + current;
+    // - 버퍼가 이미 MIN_LEN 이상이면 굳이 합칠 필요가 없을 수도 있지만
+    //   여기서는 "버퍼가 MIN_LEN 미만이면 합치는 걸 시도"라는 식으로 구현
+    if (buffer.length < minLen && combined.length <= maxLen) {
+      // 짧은 문단 + 다음 문단 합쳐도 maxLen 이하면 합친다
+      buffer = combined;
+    } else {
+      // buffer를 확정
+      finalParagraphs.push(buffer);
+      buffer = current;
     }
   }
-
-  // 루프 끝나고 남은 버퍼 처리
-  if (buffer.length >= MIN_LEN && buffer.length <= MAX_LEN) {
-    mergedParagraphs.push(buffer);
+  // 마지막 버퍼 처리
+  if (buffer) {
+    finalParagraphs.push(buffer);
   }
 
-  return mergedParagraphs;
+  return finalParagraphs;
 }
