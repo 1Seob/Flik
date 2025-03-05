@@ -20,7 +20,7 @@ jobs:
       # Yarn module 설치 + 모듈 캐싱
       - name: Cache yarn modules
         id: yarn-cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         env:
           cache-name: cache-yarn-modules
         with:
@@ -50,7 +50,6 @@ jobs:
           default_author: github_actions
           message: 'Format code'
           add: '.'
-
 
       # 빌드 테스트
 
