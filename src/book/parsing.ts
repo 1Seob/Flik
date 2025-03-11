@@ -157,10 +157,11 @@ export function distributeParagraphs(paragraphs: number[]): number[][] {
   for (let i = 0; i < days; i++) {
     // 앞쪽부터 remainder 개수만큼 하루에 하나씩 추가 배정
     const extra = i < remainder ? 1 : 0;
-    distributed.push(Array.from({ length: baseCount + extra }, (_, k) => index + k));
+    distributed.push(
+      Array.from({ length: baseCount + extra }, (_, k) => index + k),
+    );
     index += baseCount + extra;
   }
-
 
   return distributed;
 }
