@@ -39,12 +39,13 @@ export class BookController {
   @Get(':bookId/paragraphs')
   @ApiOperation({ summary: '책 문단을 30일 분량으로 가져옵니다' })
   @ApiOkResponse({
-    type: [String],
+    type: Number,
+    isArray: true,
     description: '30일 분량으로 나눠진 문단 목록',
   })
   async getBookParagraphs(
     @Param('bookId') bookId: number,
-  ): Promise<string[][]> {
+  ): Promise<number[][]> {
     return this.bookService.getBookParagraphs(bookId);
   }
 

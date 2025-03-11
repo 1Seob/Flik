@@ -142,7 +142,7 @@ export function parsing(fileName: string): string[] {
 /**
  * 문단을 30일치로 나누는 함수
  */
-export function distributeParagraphs(paragraphs: string[]): string[][] {
+export function distributeParagraphs(paragraphs: number[]): number[][] {
   const totalParagraphs = paragraphs.length;
   const days = 30;
 
@@ -151,15 +151,16 @@ export function distributeParagraphs(paragraphs: string[]): string[][] {
   const baseCount = Math.floor(totalParagraphs / days); // 기본 할당할 문단 개수
   const remainder = totalParagraphs % days; // 남은 문단 개수
 
-  const distributed: string[][] = [];
+  const distributed: number[][] = [];
   let index = 0;
 
   for (let i = 0; i < days; i++) {
     // 앞쪽부터 remainder 개수만큼 하루에 하나씩 추가 배정
     const extra = i < remainder ? 1 : 0;
-    distributed.push(paragraphs.slice(index, index + baseCount + extra));
+    distributed.push(Array.from({ length: baseCount + extra }, (_, k) => index + k));
     index += baseCount + extra;
   }
+
 
   return distributed;
 }

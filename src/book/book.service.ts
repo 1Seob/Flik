@@ -53,12 +53,12 @@ export class BookService {
     await this.bookRepository.deleteBook(bookId);
   }
 
-  async getBookParagraphs(bookId: number): Promise<string[][]> {
+  async getBookParagraphs(bookId: number): Promise<number[][]> {
     const paragraphs = await this.bookRepository.getParagraphsByBookId(bookId);
     if (paragraphs.length === 0) {
       throw new NotFoundException('책의 문단을 찾을 수 없습니다.');
     }
-
-    return distributeParagraphs(paragraphs.map((p) => p.content));
+  
+    return distributeParagraphs([...Array(paragraphs.length).keys()]);
   }
 }
