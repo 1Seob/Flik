@@ -5,7 +5,9 @@ import {
   Get,
   HttpCode,
   Param,
+  Patch,
   Post,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { BookService } from './book.service';
 import {
@@ -16,6 +18,7 @@ import {
 } from '@nestjs/swagger';
 import { BookDto } from './dto/book.dto';
 import { SaveBookPayload } from './payload/save-book.payload';
+import { PatchUpdateBookPayload } from './payload/patch-update-book.payload';
 
 @Controller('books')
 @ApiTags('Book API')
@@ -25,7 +28,9 @@ export class BookController {
   @Get(':bookId')
   @ApiOperation({ summary: '책 정보를 가져옵니다' })
   @ApiOkResponse({ type: BookDto })
-  async getBookById(@Param('bookId') bookId: number): Promise<BookDto> {
+  async getBookById(
+    @Param('bookId', ParseIntPipe) bookId: number,
+  ): Promise<BookDto> {
     return this.bookService.getBookById(bookId);
   }
 
@@ -44,7 +49,7 @@ export class BookController {
     description: '30일 분량으로 나눠진 문단 목록',
   })
   async getBookParagraphs(
-    @Param('bookId') bookId: number,
+    @Param('bookId', ParseIntPipe) bookId: number,
   ): Promise<number[][]> {
     return this.bookService.getBookParagraphs(bookId);
   }
@@ -60,11 +65,23 @@ export class BookController {
   }
   // 프로젝트 루트 디렉토리에 있는 원문 텍스트 파일의 이름을 fileName으로 받습니다. ex) Frankenstein.txt
 
+  @Patch(':bookId')
+  @ApiOperation({ summary: '책 정보 수정' })
+  @ApiOkResponse({ type: BookDto })
+  async updateBook(
+    @Param('bookId', ParseIntPipe) bookId: number,
+    @Body() payload: PatchUpdateBookPayload,
+  ): Promise<BookDto> {
+    return this.bookService.patchUpdateBook(bookId, payload);
+  }
+
   @Delete(':bookId')
   @HttpCode(204)
   @ApiOperation({ summary: '책 삭제' })
   @ApiNoContentResponse()
-  async deleteBook(@Param('bookId') bookId: number): Promise<void> {
+  async deleteBook(
+    @Param('bookId', ParseIntPipe) bookId: number,
+  ): Promise<void> {
     return this.bookService.deleteBook(bookId);
   }
 }
