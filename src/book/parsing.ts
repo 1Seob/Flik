@@ -12,11 +12,19 @@ import * as fs from 'fs';
  */
 
 export function parsing(fileName: string): string[] {
+  function removeNumericLines(text: string): string {
+    return text
+      .split('\n') // 줄 단위로 분할
+      .filter((line) => !/^\d+$/.test(line.trim())) // 숫자로만 구성된 라인이 아니면 통과
+      .join('\n'); // 다시 합침
+  }
+
   // 1) 파일 읽기
   let rawText = fs.readFileSync(fileName, 'utf-8');
+  rawText = removeNumericLines(rawText); // 숫자로만 구성된 줄 제거
 
-  const minLen = 1000; //문단 최소 길이(문자 수)
-  const maxLen = 1300; //문단 최대 길이(문자 수)
+  const minLen = 130; //문단 최소 길이(문자 수)
+  const maxLen = 350; //문단 최대 길이(문자 수)
 
   // 2) 빈 줄을 기준으로 문단 분리
   const lines = rawText.replace(/\r\n/g, '\n').split('\n');
