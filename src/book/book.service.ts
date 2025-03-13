@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -8,6 +9,8 @@ import { BookDto } from './dto/book.dto';
 import { SaveBookPayload } from './payload/save-book.payload';
 import { SaveBookData } from './type/save-book-data.type';
 import { parsing, distributeParagraphs } from './parsing';
+import { PatchUpdateBookPayload } from './payload/patch-update-book.payload';
+import { UpdateBookData } from './type/update-book-data.type';
 
 @Injectable()
 export class BookService {
@@ -60,5 +63,27 @@ export class BookService {
     }
 
     return distributeParagraphs([...Array(paragraphs.length).keys()]);
+  }
+
+  async patchUpdateBook(
+    bookId: number,
+    payload: PatchUpdateBookPayload,
+  ): Promise<BookDto> {
+    if (payload.title === null) {
+      throw new BadRequestException('title은 null이 될 수 없습니다.');
+    }
+    if (payload.author === null) {
+      throw new BadRequestException('author은 null이 될 수 없습니다.');
+    }
+    const book = await this.bookRepository.getBookById(bookId);
+    if (!book) {
+      throw new NotFoundException('책을 찾을 수 없습니다.');
+    }
+    const data: UpdateBookData = {
+      title: payload.title,
+      author: payload.author,
+    };
+    const updatedBook = await this.bookRepository.updateBook(bookId, data);
+    return BookDto.from(updatedBook);
   }
 }

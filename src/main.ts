@@ -24,10 +24,10 @@ async function bootstrap() {
   app.use(cookieParser());
 
   const config = new DocumentBuilder()
-    .setTitle('Eventory Server')
-    .setDescription('Eventory API description')
+    .setTitle('Flip Server')
+    .setDescription('Flip API description')
     .setVersion('1.0')
-    .addTag('Eventory')
+    .addTag('Flip')
     .addBearerAuth()
     .build();
 

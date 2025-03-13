@@ -2,6 +2,7 @@ import { PrismaService } from 'src/common/services/prisma.service';
 import { Injectable } from '@nestjs/common';
 import { BookData } from './type/book-data.type';
 import { SaveBookData } from './type/save-book-data.type';
+import { UpdateBookData } from './type/update-book-data.type';
 
 @Injectable()
 export class BookRepository {
@@ -75,6 +76,21 @@ export class BookRepository {
         content: true,
       },
       orderBy: { order: 'asc' },
+    });
+  }
+
+  async updateBook(bookId: number, data: UpdateBookData): Promise<BookData> {
+    return this.prisma.book.update({
+      where: { id: bookId },
+      data: {
+        title: data.title,
+        author: data.author,
+      },
+      select: {
+        id: true,
+        title: true,
+        author: true,
+      },
     });
   }
 }
