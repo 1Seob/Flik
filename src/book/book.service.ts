@@ -35,7 +35,7 @@ export class BookService {
   }
 
   async saveBook(fileName: string, payload: SaveBookPayload): Promise<BookDto> {
-    const isBookExist = await this.bookRepository.getBookByTitle(payload.title);
+    const isBookExist = await this.bookRepository.getBookByTitleAndAuthor(payload.title, payload.author);
     if (isBookExist) {
       throw new ConflictException('이미 존재하는 책입니다.');
     }
