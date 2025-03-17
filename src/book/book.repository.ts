@@ -69,7 +69,10 @@ export class BookRepository {
     });
   }
 
-  async getBookByTitleAndAuthor(title: string, author: string): Promise<BookData | null> {
+  async getBookByTitleAndAuthor(
+    title: string,
+    author: string,
+  ): Promise<BookData | null> {
     return this.prisma.book.findFirst({
       where: {
         title,
