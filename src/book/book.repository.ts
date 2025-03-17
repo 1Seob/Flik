@@ -69,6 +69,23 @@ export class BookRepository {
     });
   }
 
+  async getBookByTitleAndAuthor(
+    title: string,
+    author: string,
+  ): Promise<BookData | null> {
+    return this.prisma.book.findFirst({
+      where: {
+        title,
+        author,
+      },
+      select: {
+        id: true,
+        title: true,
+        author: true,
+      },
+    });
+  }
+
   async getParagraphsByBookId(bookId: number): Promise<{ content: string }[]> {
     return this.prisma.paragraph.findMany({
       where: { bookId },
