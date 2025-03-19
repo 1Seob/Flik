@@ -21,7 +21,7 @@ import { UserBaseInfo } from '../auth/type/user-base-info.type';
 import { ApiTags } from '@nestjs/swagger';
 
 @Controller('paragraphs')
-@ApiTags('Paragraphs API')
+@ApiTags('Paragraph API')
 export class ParagraphController {
   constructor(private readonly paragraphService: ParagraphService) {}
 

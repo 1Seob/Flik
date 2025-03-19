@@ -8,6 +8,7 @@ import {
   Patch,
   Post,
   ParseIntPipe,
+  Query,
 } from '@nestjs/common';
 import { BookService } from './book.service';
 import {
@@ -19,6 +20,8 @@ import {
 import { BookDto } from './dto/book.dto';
 import { SaveBookPayload } from './payload/save-book.payload';
 import { PatchUpdateBookPayload } from './payload/patch-update-book.payload';
+import { BookListDto } from './dto/book.dto';
+import { BookQuery } from './query/book.query';
 
 @Controller('books')
 @ApiTags('Book API')
@@ -34,11 +37,11 @@ export class BookController {
     return this.bookService.getBookById(bookId);
   }
 
-  @Get('title/:title')
-  @ApiOperation({ summary: '제목으로 책 정보를 가져옵니다' })
-  @ApiOkResponse({ type: BookDto })
-  async getBookByTitle(@Param('title') title: string): Promise<BookDto> {
-    return this.bookService.getBookByTitle(title);
+  @Get()
+  @ApiOperation({ summary: '책 제목과 작가로 책을 검색합니다' })
+  @ApiOkResponse({ type: BookListDto })
+  async getBooks(@Query() query: BookQuery): Promise<BookListDto> {
+    return this.bookService.getBooks(query);
   }
 
   @Get(':bookId/paragraphs')

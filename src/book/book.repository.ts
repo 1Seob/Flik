@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { BookData } from './type/book-data.type';
 import { SaveBookData } from './type/save-book-data.type';
 import { UpdateBookData } from './type/update-book-data.type';
+import { BookQuery } from './query/book.query';
 
 @Injectable()
 export class BookRepository {
@@ -56,19 +57,6 @@ export class BookRepository {
     ]);
   }
 
-  async getBookByTitle(title: string): Promise<BookData | null> {
-    return this.prisma.book.findFirst({
-      where: {
-        title,
-      },
-      select: {
-        id: true,
-        title: true,
-        author: true,
-      },
-    });
-  }
-
   async getBookByTitleAndAuthor(
     title: string,
     author: string,
@@ -102,6 +90,20 @@ export class BookRepository {
       data: {
         title: data.title,
         author: data.author,
+      },
+      select: {
+        id: true,
+        title: true,
+        author: true,
+      },
+    });
+  }
+
+  async getBooks(query: BookQuery): Promise<BookData[]> {
+    return this.prisma.book.findMany({
+      where: {
+        title: query.title,
+        author: query.author,
       },
       select: {
         id: true,
