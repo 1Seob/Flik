@@ -5,12 +5,13 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { BookRepository } from './book.repository';
-import { BookDto } from './dto/book.dto';
+import { BookDto, BookListDto } from './dto/book.dto';
 import { SaveBookPayload } from './payload/save-book.payload';
 import { SaveBookData } from './type/save-book-data.type';
 import { parsing, distributeParagraphs } from './parsing';
 import { PatchUpdateBookPayload } from './payload/patch-update-book.payload';
 import { UpdateBookData } from './type/update-book-data.type';
+import { BookQuery } from './query/book.query';
 
 @Injectable()
 export class BookService {
@@ -23,14 +24,6 @@ export class BookService {
       throw new NotFoundException('책을 찾을 수 없습니다.');
     }
 
-    return BookDto.from(book);
-  }
-
-  async getBookByTitle(title: string): Promise<BookDto> {
-    const book = await this.bookRepository.getBookByTitle(title);
-    if (!book) {
-      throw new NotFoundException('책을 찾을 수 없습니다.');
-    }
     return BookDto.from(book);
   }
 
@@ -88,5 +81,10 @@ export class BookService {
     };
     const updatedBook = await this.bookRepository.updateBook(bookId, data);
     return BookDto.from(updatedBook);
+  }
+
+  async getBooks(query: BookQuery): Promise<BookListDto> {
+    const books = await this.bookRepository.getBooks(query);
+    return BookListDto.from(books);
   }
 }

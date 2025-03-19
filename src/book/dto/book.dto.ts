@@ -27,4 +27,22 @@ export class BookDto {
       author: data.author,
     };
   }
+
+  static fromArray(data: BookData[]): BookDto[] {
+    return data.map((book) => BookDto.from(book));
+  }
+}
+
+export class BookListDto {
+  @ApiProperty({
+    description: '책 목록',
+    type: [BookDto],
+  })
+  books!: BookDto[];
+
+  static from(data: BookData[]): BookListDto {
+    return {
+      books: BookDto.fromArray(data),
+    };
+  }
 }
