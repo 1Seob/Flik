@@ -20,7 +20,7 @@ export class BookDto {
   })
   author!: string;
 
-  @ApiProperty({ 
+  @ApiProperty({
     description: '책 표지 이미지 URL',
     type: String,
     required: false,

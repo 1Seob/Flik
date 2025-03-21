@@ -92,7 +92,9 @@ export class BookController {
   @HttpCode(204)
   @ApiOperation({ summary: '책 삭제' })
   @ApiNoContentResponse()
-  async deleteBook(@Param('bookId', ParseIntPipe) bookId: number): Promise<void> {
+  async deleteBook(
+    @Param('bookId', ParseIntPipe) bookId: number,
+  ): Promise<void> {
     return this.bookService.deleteBook(bookId);
   }
 }
