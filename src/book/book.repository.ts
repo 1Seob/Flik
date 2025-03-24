@@ -94,7 +94,9 @@ export class BookRepository {
       data: {
         title: data.title,
         author: data.author,
-        ...(data.coverImageUrl !== undefined && { coverImageUrl: data.coverImageUrl }), // undefined이면 기존 값 유지
+        ...(data.coverImageUrl !== undefined && {
+          coverImageUrl: data.coverImageUrl,
+        }), // undefined이면 기존 값 유지
       },
       select: {
         id: true,
