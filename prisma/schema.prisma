@@ -24,6 +24,7 @@ model User {
   deletedAt    DateTime? @map("deleted_at")
 
   likes        ParagraphLike[]
+  bookLikes    BookLike[]
 
   @@map("user")
 }
@@ -38,6 +39,7 @@ model Book {
   deletedAt    DateTime? @map("deleted_at")
 
   paragraphs   Paragraph[]
+  likedBy      BookLike[]
 
   @@map("book")
 }
@@ -65,4 +67,16 @@ model ParagraphLike {
 
   @@unique([userId, paragraphId])
   @@map("paragraph-like")
+}
+
+model BookLike {
+  id      Int  @id @default(autoincrement())
+  userId  Int
+  bookId  Int
+
+  user    User @relation(fields: [userId], references: [id])
+  book    Book @relation(fields: [bookId], references: [id])
+
+  @@unique([userId, bookId])
+  @@map("book-like")
 }

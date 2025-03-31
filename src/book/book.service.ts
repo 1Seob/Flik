@@ -13,6 +13,7 @@ import { PatchUpdateBookPayload } from './payload/patch-update-book.payload';
 import { UpdateBookData } from './type/update-book-data.type';
 import { BookQuery } from './query/book.query';
 import { SupabaseService } from 'src/common/services/supabase.service';
+import { UserBaseInfo } from '../auth/type/user-base-info.type';
 
 @Injectable()
 export class BookService {
@@ -148,5 +149,18 @@ export class BookService {
   async getBooks(query: BookQuery): Promise<BookListDto> {
     const books = await this.bookRepository.getBooks(query);
     return BookListDto.from(books);
+  }
+
+  async toggleBookLike(bookId: number, user: UserBaseInfo): Promise<void> {
+    const book = await this.bookRepository.getBookById(bookId);
+    if (!book) {
+      throw new NotFoundException('책을 찾을 수 없습니다.');
+    }
+
+    await this.bookRepository.toggleBookLike(bookId, user.id);
+  }
+
+  async getLikedBookIdsByUser(userId: number): Promise<number[]> {
+    return this.bookRepository.getLikedBookIdsByUser(userId);
   }
 }
