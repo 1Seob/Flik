@@ -11,6 +11,7 @@ import {
   Query,
   UseInterceptors,
   UploadedFile,
+  UseGuards,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { BookService } from './book.service';
@@ -20,12 +21,16 @@ import {
   ApiOkResponse,
   ApiOperation,
   ApiTags,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 import { BookDto } from './dto/book.dto';
 import { SaveBookPayload } from './payload/save-book.payload';
 import { PatchUpdateBookPayload } from './payload/patch-update-book.payload';
 import { BookListDto } from './dto/book.dto';
 import { BookQuery } from './query/book.query';
+import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
+import { CurrentUser } from '../auth/decorator/user.decorator';
+import { UserBaseInfo } from '../auth/type/user-base-info.type';
 
 @Controller('books')
 @ApiTags('Book API')
@@ -94,5 +99,25 @@ export class BookController {
   @ApiNoContentResponse()
   async deleteBook(@Param('bookId', ParseIntPipe) bookId: number): Promise<void> {
     return this.bookService.deleteBook(bookId);
+  }
+
+  @Post(':bookId/like')
+  @HttpCode(204)
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '책에 좋아요 누르기 (다시 누르면 취소)' })
+  @ApiNoContentResponse()
+  async toggleBookLike(
+    @Param('bookId', ParseIntPipe) bookId: number,
+    @CurrentUser() user: UserBaseInfo,
+  ): Promise<void> {
+    return this.bookService.toggleBookLike(bookId, user);
+  }
+
+  @Get('likes/:userId')
+  @ApiOperation({ summary: '유저가 좋아요한 책 ID 리스트 반환' })
+  @ApiOkResponse({ type: [Number] })
+  async getLikedBooks(@Param('userId', ParseIntPipe) userId: number): Promise<number[]> {
+    return this.bookService.getLikedBookIdsByUser(userId);
   }
 }

@@ -119,4 +119,42 @@ export class BookRepository {
       },
     });
   }
+
+  async toggleBookLike(bookId: number, userId: number): Promise<void> {
+    const like = await this.prisma.bookLike.findUnique({
+      where: {
+        userId_bookId: {
+          userId,
+          bookId,
+        },
+      },
+    });
+  
+    if (like) {
+      await this.prisma.bookLike.delete({
+        where: {
+          userId_bookId: {
+            userId,
+            bookId,
+          },
+        },
+      });
+    } else {
+      await this.prisma.bookLike.create({
+        data: {
+          bookId,
+          userId,
+        },
+      });
+    }
+  }
+  
+  async getLikedBookIdsByUser(userId: number): Promise<number[]> {
+    const likes = await this.prisma.bookLike.findMany({
+      where: { userId },
+      select: { bookId: true },
+    });
+    return likes.map((like) => like.bookId);
+  }
+  
 }
