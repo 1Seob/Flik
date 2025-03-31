@@ -15,7 +15,6 @@ import { BookQuery } from './query/book.query';
 import { SupabaseService } from 'src/common/services/supabase.service';
 import { UserBaseInfo } from '../auth/type/user-base-info.type';
 
-
 @Injectable()
 export class BookService {
   constructor(
@@ -56,7 +55,9 @@ export class BookService {
       if (error) {
         throw new BadRequestException('이미지 업로드 실패');
       }
-      coverImageUrl = data?.path ? this.supabaseService.getPublicUrl(data.path) : undefined;
+      coverImageUrl = data?.path
+        ? this.supabaseService.getPublicUrl(data.path)
+        : undefined;
     }
 
     const paragraphs = parsing(fileName);
@@ -98,49 +99,49 @@ export class BookService {
     if (payload.author === null) {
       throw new BadRequestException('author은 null이 될 수 없습니다.');
     }
-  
+
     const book = await this.bookRepository.getBookById(bookId);
     if (!book) {
       throw new NotFoundException('책을 찾을 수 없습니다.');
     }
-  
+
     let coverImageUrl = book.coverImageUrl;
-  
+
     // 📌 파일 업로드 전, coverImageFile이 제대로 전달되는지 확인
-    console.log("📂 파일 업로드 요청 받음:", coverImageFile);
-  
+    console.log('📂 파일 업로드 요청 받음:', coverImageFile);
+
     if (coverImageFile) {
       // 기존 표지 이미지가 있다면 Supabase에서 삭제
       if (book.coverImageUrl) {
         await this.supabaseService.deleteImage(book.coverImageUrl);
       }
-  
+
       // 📌 Supabase 업로드 실행 전, 파일 이름과 버퍼 확인
-      console.log("📂 업로드할 파일 이름:", coverImageFile.originalname);
-      console.log("📂 업로드할 파일 크기:", coverImageFile.size);
-  
+      console.log('📂 업로드할 파일 이름:', coverImageFile.originalname);
+      console.log('📂 업로드할 파일 크기:', coverImageFile.size);
+
       // 새 표지 이미지 업로드
       const { data, error } = await this.supabaseService.uploadImage(
         coverImageFile.originalname,
         coverImageFile.buffer,
       );
-  
+
       if (error) {
-        console.error("⚠️ Supabase 업로드 실패:", error);
+        console.error('⚠️ Supabase 업로드 실패:', error);
         throw new BadRequestException('이미지 업로드 실패');
       }
-  
+
       coverImageUrl = data?.path
         ? this.supabaseService.getPublicUrl(data.path)
         : undefined;
     }
-  
+
     const data: UpdateBookData = {
       title: payload.title,
       author: payload.author,
       coverImageUrl,
     };
-  
+
     const updatedBook = await this.bookRepository.updateBook(bookId, data);
     return BookDto.from(updatedBook);
   }
@@ -155,11 +156,11 @@ export class BookService {
     if (!book) {
       throw new NotFoundException('책을 찾을 수 없습니다.');
     }
-  
+
     await this.bookRepository.toggleBookLike(bookId, user.id);
   }
-  
+
   async getLikedBookIdsByUser(userId: number): Promise<number[]> {
     return this.bookRepository.getLikedBookIdsByUser(userId);
-  }  
+  }
 }
