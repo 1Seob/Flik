@@ -47,15 +47,14 @@ export class BookRepository {
 
   async deleteBook(bookId: number): Promise<void> {
     await this.prisma.$transaction([
+      this.prisma.bookLike.deleteMany({
+        where: { bookId },
+      }),
       this.prisma.paragraph.deleteMany({
-        where: {
-          bookId,
-        },
+        where: { bookId },
       }),
       this.prisma.book.delete({
-        where: {
-          id: bookId,
-        },
+        where: { id: bookId },
       }),
     ]);
   }
