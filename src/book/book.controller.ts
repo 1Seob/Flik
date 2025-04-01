@@ -28,6 +28,7 @@ import { SaveBookPayload } from './payload/save-book.payload';
 import { PatchUpdateBookPayload } from './payload/patch-update-book.payload';
 import { BookListDto } from './dto/book.dto';
 import { BookQuery } from './query/book.query';
+import { MetadataListDto } from './dto/metadata.dto';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorator/user.decorator';
 import { UserBaseInfo } from '../auth/type/user-base-info.type';
@@ -36,6 +37,16 @@ import { UserBaseInfo } from '../auth/type/user-base-info.type';
 @ApiTags('Book API')
 export class BookController {
   constructor(private readonly bookService: BookService) {}
+
+  @Get('metadata')
+  @ApiOperation({ summary: '책 메타데이터를 가져옵니다' })
+  @ApiOkResponse({ type: MetadataListDto })
+  async getBooksMetadata(
+    @Query('offset') offset = 0,
+    @Query('limit') limit = 10,
+  ): Promise<MetadataListDto> {
+    return this.bookService.getBooksMetadata(offset, limit);
+  }
 
   @Get(':bookId')
   @ApiOperation({ summary: '책 정보를 가져옵니다' })
