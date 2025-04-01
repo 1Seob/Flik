@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { BookData } from './type/book-data.type';
 import { SaveBookData } from './type/save-book-data.type';
 import { UpdateBookData } from './type/update-book-data.type';
+import { MetadataData } from './type/metadata-data.type';
 import { BookQuery } from './query/book.query';
 
 @Injectable()
@@ -156,5 +157,29 @@ export class BookRepository {
       select: { bookId: true },
     });
     return likes.map((like) => like.bookId);
+  }
+
+  async getBooksMetadata(
+    offset: number,
+    limit: number,
+  ): Promise<MetadataData[]> {
+    const books = await this.prisma.book.findMany({
+      skip: offset,
+      take: limit,
+      select: {
+        id: true,
+        title: true,
+        paragraphs: {
+          select: {
+            content: true,
+          },
+        },
+      },
+    });
+    return books.map((book) => ({
+      id: book.id,
+      title: book.title,
+      content: book.paragraphs.map((paragraph) => paragraph.content).join('\n'),
+    }));
   }
 }

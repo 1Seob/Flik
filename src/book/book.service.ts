@@ -5,6 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { BookRepository } from './book.repository';
+import { UserRepository } from 'src/user/user.repository';
 import { BookDto, BookListDto } from './dto/book.dto';
 import { SaveBookPayload } from './payload/save-book.payload';
 import { SaveBookData } from './type/save-book-data.type';
@@ -12,6 +13,7 @@ import { parsing, distributeParagraphs } from './parsing';
 import { PatchUpdateBookPayload } from './payload/patch-update-book.payload';
 import { UpdateBookData } from './type/update-book-data.type';
 import { BookQuery } from './query/book.query';
+import { MetadataListDto } from './dto/metadata.dto';
 import { SupabaseService } from 'src/common/services/supabase.service';
 import { UserBaseInfo } from '../auth/type/user-base-info.type';
 
@@ -19,6 +21,7 @@ import { UserBaseInfo } from '../auth/type/user-base-info.type';
 export class BookService {
   constructor(
     private readonly bookRepository: BookRepository,
+    private readonly userRepository: UserRepository,
     private readonly supabaseService: SupabaseService,
   ) {}
 
@@ -161,6 +164,18 @@ export class BookService {
   }
 
   async getLikedBookIdsByUser(userId: number): Promise<number[]> {
+    const user = await this.userRepository.getUserById(userId);
+    if (!user) {
+      throw new NotFoundException('사용자를 찾을 수 없습니다.');
+    }
     return this.bookRepository.getLikedBookIdsByUser(userId);
+  }
+
+  async getBooksMetadata(
+    offset: number,
+    limit: number,
+  ): Promise<MetadataListDto> {
+    const books = await this.bookRepository.getBooksMetadata(offset, limit);
+    return MetadataListDto.from(books);
   }
 }
