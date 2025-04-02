@@ -22,6 +22,7 @@ import {
   ApiOperation,
   ApiTags,
   ApiBearerAuth,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { BookDto } from './dto/book.dto';
 import { SaveBookPayload } from './payload/save-book.payload';
@@ -40,10 +41,16 @@ export class BookController {
 
   @Get('metadata')
   @ApiOperation({ summary: '책 메타데이터를 가져옵니다' })
+  @ApiQuery({
+    name: 'offset',
+    type: Number,
+    description: '가져올 시작 위치입니다',
+  })
+  @ApiQuery({ name: 'limit', type: Number, description: '가져올 개수입니다' })
   @ApiOkResponse({ type: MetadataListDto })
   async getBooksMetadata(
-    @Query('offset') offset = 0,
-    @Query('limit') limit = 10,
+    @Query('offset', ParseIntPipe) offset: number,
+    @Query('limit', ParseIntPipe) limit: number,
   ): Promise<MetadataListDto> {
     return this.bookService.getBooksMetadata(offset, limit);
   }
