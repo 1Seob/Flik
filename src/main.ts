@@ -34,7 +34,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('docs', app, document);
 
-  const port = process.env.PORT || 8000;  // Cloud Run 환경변수를 사용
-  await app.listen(port, '0.0.0.0');      // '0.0.0.0' 바인딩도 권장
+  const port = process.env.PORT || 8000; // Cloud Run 환경변수를 사용
+  await app.listen(port, '0.0.0.0'); // '0.0.0.0' 바인딩도 권장
 }
 bootstrap();
