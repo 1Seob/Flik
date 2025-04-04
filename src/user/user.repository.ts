@@ -49,4 +49,31 @@ export class UserRepository {
       },
     });
   }
+
+  async getAllUsersWithBooks(): Promise<{ id: number; likedBookIds: number[]; readBookIds: number[] }[]> {
+    const users = await this.prisma.user.findMany({
+      where: {
+        deletedAt: null,
+      },
+      select: {
+        id: true,
+        bookLikes: {
+          select: {
+            bookId: true,
+          },
+        },
+        userBooks: {
+          select: {
+            bookId: true,
+          },
+        },
+      },
+    });
+    
+    return users.map((user) => ({
+      id: user.id,
+      likedBookIds: user.bookLikes.map((like) => like.bookId),
+      readBookIds: user.userBooks.map((read) => read.bookId),
+    }));
+  }
 }

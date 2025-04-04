@@ -29,7 +29,7 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Get(':userId')
-  @ApiOperation({ summary: '유저 정보를 가져옵니다' })
+  @ApiOperation({ summary: '유저 정보 가져오기' })
   @ApiOkResponse({ type: UserDto })
   async getUserById(@Param('userId') userId: number): Promise<UserDto> {
     return this.userService.getUserById(userId);
@@ -38,7 +38,7 @@ export class UserController {
   @Patch(':userId')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: '유저 정보를 수정합니다' })
+  @ApiOperation({ summary: '유저 정보 수정' })
   @ApiOkResponse({ type: UserDto })
   async updateUser(
     @Param('userId', ParseIntPipe) userId: number,
@@ -59,5 +59,17 @@ export class UserController {
     @CurrentUser() user: UserBaseInfo,
   ): Promise<void> {
     return this.userService.deleteUser(userId, user);
+  }
+
+  @Get()
+  @ApiOperation({ summary: '모든 사용자별 사용자 ID, 좋아요한 책 목록, 읽은 책 목록 반환' })
+  @ApiOkResponse({
+    description: '모든 사용자 정보 반환',
+    type: [Object],
+  })
+  async getAllUsersWithBooks(): Promise<
+  { id: number; likedBookIds: number[]; readBookIds: number[] }[]
+  > {
+    return this.userService.getAllUsersWithBooks();
   }
 }

@@ -40,11 +40,11 @@ export class BookController {
   constructor(private readonly bookService: BookService) {}
 
   @Get('metadata')
-  @ApiOperation({ summary: '책 메타데이터를 가져옵니다' })
+  @ApiOperation({ summary: '책 메타데이터 가져오기' })
   @ApiQuery({
     name: 'offset',
     type: Number,
-    description: '가져올 시작 위치입니다',
+    description: '가져올 시작 위치입니다 (0부터 시작)',
   })
   @ApiQuery({ name: 'limit', type: Number, description: '가져올 개수입니다' })
   @ApiOkResponse({ type: MetadataListDto })
@@ -56,23 +56,26 @@ export class BookController {
   }
 
   @Get(':bookId')
-  @ApiOperation({ summary: '책 정보를 가져옵니다' })
+  @ApiOperation({ summary: '책 정보 가져오기' })
   @ApiOkResponse({ type: BookDto })
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   async getBookById(
     @Param('bookId', ParseIntPipe) bookId: number,
-  ): Promise<BookDto> {
-    return this.bookService.getBookById(bookId);
-  }
+  @CurrentUser() user: UserBaseInfo,
+): Promise<BookDto> {
+  return this.bookService.getBookById(bookId, user.id);
+}
 
   @Get()
-  @ApiOperation({ summary: '책 제목과 작가로 책을 검색합니다' })
+  @ApiOperation({ summary: '책 제목과 작가로 책 검색 (둘 중 하나로도 가능)' })
   @ApiOkResponse({ type: BookListDto })
   async getBooks(@Query() query: BookQuery): Promise<BookListDto> {
     return this.bookService.getBooks(query);
   }
 
   @Get(':bookId/paragraphs')
-  @ApiOperation({ summary: '책 문단을 30일 분량으로 가져옵니다' })
+  @ApiOperation({ summary: '책 문단을 30일 분량으로 가져오기' })
   @ApiOkResponse({
     type: Number,
     isArray: true,
@@ -82,6 +85,24 @@ export class BookController {
     @Param('bookId', ParseIntPipe) bookId: number,
   ): Promise<number[][]> {
     return this.bookService.getBookParagraphs(bookId);
+  }
+
+  @Get(':bookId/paragraphs/count')
+  @ApiOperation({ summary: '책 전체 문단 수 반환' })
+  @ApiOkResponse({ type: Number })
+  async getParagraphCountByBookId(
+    @Param('bookId', ParseIntPipe) bookId: number,
+  ): Promise<number> {
+    return this.bookService.getParagraphCountByBookId(bookId);
+  }
+
+  @Get(':bookId/paragraphs/per-day')
+  @ApiOperation({ summary: '책 1일 읽어야 할 문단 수 반환 (30일 기준)' })
+  @ApiOkResponse({ type: Number })
+  async getParagraphsPerDay(
+    @Param('bookId', ParseIntPipe) bookId: number,
+  ): Promise<number> {
+    return this.bookService.getParagraphsPerDay(bookId);
   }
 
   @Post('save/:fileName')

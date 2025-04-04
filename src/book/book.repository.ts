@@ -182,4 +182,27 @@ export class BookRepository {
       content: book.paragraphs.map((paragraph) => paragraph.content).join('\n'),
     }));
   }
+
+  async createUserBookIfNotExists(userId: number, bookId: number): Promise<void> {
+    const existing = await this.prisma.userBook.findUnique({
+      where: {
+        userId_bookId: { userId, bookId },
+      },
+    });
+  
+    if (!existing) {
+      await this.prisma.userBook.create({
+        data: {
+          userId,
+          bookId,
+        },
+      });
+    }
+  }
+
+  async getParagraphCountByBookId(bookId: number): Promise<number> {
+    return this.prisma.paragraph.count({
+      where: { bookId },
+    });
+  }
 }
