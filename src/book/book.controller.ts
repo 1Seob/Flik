@@ -58,14 +58,11 @@ export class BookController {
   @Get(':bookId')
   @ApiOperation({ summary: '책 정보 가져오기' })
   @ApiOkResponse({ type: BookDto })
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
   async getBookById(
     @Param('bookId', ParseIntPipe) bookId: number,
-  @CurrentUser() user: UserBaseInfo,
-): Promise<BookDto> {
-  return this.bookService.getBookById(bookId, user.id);
-}
+  ): Promise<BookDto> {
+    return this.bookService.getBookById(bookId);
+  }
 
   @Get()
   @ApiOperation({ summary: '책 제목과 작가로 책 검색 (둘 중 하나로도 가능)' })
@@ -75,16 +72,18 @@ export class BookController {
   }
 
   @Get(':bookId/paragraphs')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: '책 문단을 30일 분량으로 가져오기' })
   @ApiOkResponse({
-    type: Number,
-    isArray: true,
+    type: () => [[String]],
     description: '30일 분량으로 나눠진 문단 목록',
   })
   async getBookParagraphs(
     @Param('bookId', ParseIntPipe) bookId: number,
-  ): Promise<number[][]> {
-    return this.bookService.getBookParagraphs(bookId);
+    @CurrentUser() user: UserBaseInfo,
+  ): Promise<string[][]> {
+    return this.bookService.getBookParagraphs(bookId, user.id);
   }
 
   @Get(':bookId/paragraphs/count')

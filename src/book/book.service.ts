@@ -25,13 +25,12 @@ export class BookService {
     private readonly supabaseService: SupabaseService,
   ) {}
 
-  async getBookById(bookId: number, userId: number): Promise<BookDto> {
+  async getBookById(bookId: number): Promise<BookDto> {
     const book = await this.bookRepository.getBookById(bookId);
-  
     if (!book) {
       throw new NotFoundException('책을 찾을 수 없습니다.');
     }
-    await this.bookRepository.createUserBookIfNotExists(userId, bookId);
+
     return BookDto.from(book);
   }
 
@@ -79,16 +78,22 @@ export class BookService {
     if (!book) {
       throw new NotFoundException('책을 찾을 수 없습니다.');
     }
+
     await this.bookRepository.deleteBook(bookId);
   }
 
-  async getBookParagraphs(bookId: number): Promise<number[][]> {
+  async getBookParagraphs(bookId: number, userId: number): Promise<string[][]> {
     const paragraphs = await this.bookRepository.getParagraphsByBookId(bookId);
     if (paragraphs.length === 0) {
       throw new NotFoundException('책의 문단을 찾을 수 없습니다.');
     }
 
-    return distributeParagraphs([...Array(paragraphs.length).keys()]);
+    await this.bookRepository.createUserBookIfNotExists(userId, bookId);
+    const contents = paragraphs.map((p) => p.content);
+    const indices = contents.map((_, i) => i);
+    const distributed = distributeParagraphs(indices);
+    
+    return distributed.map(dayIndices => dayIndices.map(index => contents[index]));
   }
 
   async patchUpdateBook(
@@ -168,6 +173,7 @@ export class BookService {
     if (!user) {
       throw new NotFoundException('사용자를 찾을 수 없습니다.');
     }
+
     return this.bookRepository.getLikedBookIdsByUser(userId);
   }
 
@@ -180,11 +186,21 @@ export class BookService {
   }
 
   async getParagraphCountByBookId(bookId: number): Promise<number> {
+    const book = await this.bookRepository.getBookById(bookId);
+    if (!book) {
+      throw new NotFoundException('책을 찾을 수 없습니다.');
+    }
+
     const count = await this.bookRepository.getParagraphCountByBookId(bookId);
     return count;
   }
   
   async getParagraphsPerDay(bookId: number): Promise<number> {
+    const book = await this.bookRepository.getBookById(bookId);
+    if (!book) {
+      throw new NotFoundException('책을 찾을 수 없습니다.');
+    }
+    
     const count = await this.bookRepository.getParagraphCountByBookId(bookId);
     const indices = Array.from({ length: count }, (_, i) => i);
     const distributed = distributeParagraphs(indices);
