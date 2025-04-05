@@ -183,13 +183,16 @@ export class BookRepository {
     }));
   }
 
-  async createUserBookIfNotExists(userId: number, bookId: number): Promise<void> {
+  async createUserBookIfNotExists(
+    userId: number,
+    bookId: number,
+  ): Promise<void> {
     const existing = await this.prisma.userBook.findUnique({
       where: {
         userId_bookId: { userId, bookId },
       },
     });
-  
+
     if (!existing) {
       await this.prisma.userBook.create({
         data: {

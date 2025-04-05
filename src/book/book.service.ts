@@ -92,8 +92,10 @@ export class BookService {
     const contents = paragraphs.map((p) => p.content);
     const indices = contents.map((_, i) => i);
     const distributed = distributeParagraphs(indices);
-    
-    return distributed.map(dayIndices => dayIndices.map(index => contents[index]));
+
+    return distributed.map((dayIndices) =>
+      dayIndices.map((index) => contents[index]),
+    );
   }
 
   async patchUpdateBook(
@@ -194,18 +196,18 @@ export class BookService {
     const count = await this.bookRepository.getParagraphCountByBookId(bookId);
     return count;
   }
-  
+
   async getParagraphsPerDay(bookId: number): Promise<number> {
     const book = await this.bookRepository.getBookById(bookId);
     if (!book) {
       throw new NotFoundException('책을 찾을 수 없습니다.');
     }
-    
+
     const count = await this.bookRepository.getParagraphCountByBookId(bookId);
     const indices = Array.from({ length: count }, (_, i) => i);
     const distributed = distributeParagraphs(indices);
     const perDayCounts = distributed.map((day) => day.length);
-  
+
     // 가장 많이 할당된 날의 문단 수
     return Math.max(...perDayCounts);
   }

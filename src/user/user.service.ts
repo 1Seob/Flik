@@ -77,7 +77,9 @@ export class UserService {
     };
   }
 
-  async getAllUsersWithBooks(): Promise<{ id: number; likedBookIds: number[]; readBookIds: number[] }[]> {
+  async getAllUsersWithBooks(): Promise<
+    { id: number; likedBookIds: number[]; readBookIds: number[] }[]
+  > {
     return this.userRepository.getAllUsersWithBooks();
   }
 }
