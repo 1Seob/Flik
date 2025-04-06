@@ -76,8 +76,9 @@ export class BookController {
   @ApiBearerAuth()
   @ApiOperation({ summary: '책 문단을 30일 분량으로 가져오기' })
   @ApiOkResponse({
-    type: () => [[String]],
-    description: '30일 분량으로 나눠진 문단 목록',
+    type: String,
+    isArray: true,
+    description: '30일 분량으로 나눠진 문단 리스트 배열',
   })
   async getBookParagraphs(
     @Param('bookId', ParseIntPipe) bookId: number,
@@ -85,6 +86,7 @@ export class BookController {
   ): Promise<string[][]> {
     return this.bookService.getBookParagraphs(bookId, user.id);
   }
+
 
   @Get(':bookId/paragraphs/count')
   @ApiOperation({ summary: '책 전체 문단 수 반환' })
