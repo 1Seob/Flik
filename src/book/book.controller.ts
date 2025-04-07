@@ -87,7 +87,6 @@ export class BookController {
     return this.bookService.getBookParagraphs(bookId, user.id);
   }
 
-
   @Get(':bookId/paragraphs/count')
   @ApiOperation({ summary: '책 전체 문단 수 반환' })
   @ApiOkResponse({ type: Number })
