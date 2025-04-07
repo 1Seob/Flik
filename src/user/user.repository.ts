@@ -50,7 +50,9 @@ export class UserRepository {
     });
   }
 
-  async getAllUsersWithBooks(): Promise<{ id: number; likedBookIds: number[]; readBookIds: number[] }[]> {
+  async getAllUsersWithBooks(): Promise<
+    { id: number; likedBookIds: number[]; readBookIds: number[] }[]
+  > {
     const users = await this.prisma.user.findMany({
       where: {
         deletedAt: null,
@@ -69,7 +71,7 @@ export class UserRepository {
         },
       },
     });
-    
+
     return users.map((user) => ({
       id: user.id,
       likedBookIds: user.bookLikes.map((like) => like.bookId),
