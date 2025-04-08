@@ -76,10 +76,4 @@ export class UserService {
       email: payload.email,
     };
   }
-
-  async getAllUsersWithBooks(): Promise<
-    { id: number; likedBookIds: number[]; readBookIds: number[] }[]
-  > {
-    return this.userRepository.getAllUsersWithBooks();
-  }
 }
