@@ -76,9 +76,8 @@ export class BookController {
   @ApiBearerAuth()
   @ApiOperation({ summary: '책 문단을 30일 분량으로 가져오기' })
   @ApiOkResponse({
-    type: String,
-    isArray: true,
-    description: '30일 분량으로 나눠진 문단 리스트 배열',
+    type: () => [[String]],
+    description: '30일 분량으로 나눠진 문단 목록',
   })
   async getBookParagraphs(
     @Param('bookId', ParseIntPipe) bookId: number,
