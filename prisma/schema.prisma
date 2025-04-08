@@ -25,7 +25,6 @@ model User {
 
   likes        ParagraphLike[]
   bookLikes    BookLike[]
-  userBooks    UserBook[]
 
   @@map("user")
 }
@@ -41,7 +40,6 @@ model Book {
 
   paragraphs   Paragraph[]
   likedBy      BookLike[]
-  readBy       UserBook[]
 
   @@map("book")
 }
@@ -81,16 +79,4 @@ model BookLike {
 
   @@unique([userId, bookId])
   @@map("book-like")
-}
-
-model UserBook {
-  id      Int  @id @default(autoincrement())
-  userId  Int
-  bookId  Int
-
-  user    User @relation(fields: [userId], references: [id])
-  book    Book @relation(fields: [bookId], references: [id])
-
-  @@unique([userId, bookId])
-  @@map("user-book")
 }
