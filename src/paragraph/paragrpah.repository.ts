@@ -52,4 +52,12 @@ export class ParagraphRepository {
       },
     });
   }
+
+  async getLikedParagraphIdsByUser(userId: number): Promise<number[]> {
+    const likes = await this.prisma.paragraphLike.findMany({
+      where: { userId },
+      select: { paragraphId: true },
+    });
+    return likes.map((like) => like.paragraphId);
+  }
 }
