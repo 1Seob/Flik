@@ -122,6 +122,7 @@ export class BookRepository {
     });
   }
 
+  /*
   async toggleBookLike(bookId: number, userId: number): Promise<void> {
     const like = await this.prisma.bookLike.findUnique({
       where: {
@@ -158,6 +159,8 @@ export class BookRepository {
     });
     return likes.map((like) => like.bookId);
   }
+
+  */
 
   async getBooksMetadata(
     offset: number,
@@ -207,5 +210,39 @@ export class BookRepository {
     return this.prisma.paragraph.count({
       where: { bookId },
     });
+  }
+
+  async saveBookToUser(userId: number, bookId: number): Promise<void> {
+    await this.prisma.bookSave.create({
+      data: {
+        userId,
+        bookId,
+      },
+    });
+  }
+
+  async unsaveBookFromUser(userId: number, bookId: number): Promise<void> {
+    await this.prisma.bookSave.delete({
+      where: {
+        userId_bookId: { userId, bookId },
+      },
+    });
+  }
+
+  async getSavedBookIdsByUser(userId: number): Promise<number[]> {
+    const savedBooks = await this.prisma.bookSave.findMany({
+      where: { userId },
+      select: { bookId: true },
+    });
+    return savedBooks.map((savedBook) => savedBook.bookId);
+  }
+
+  async isBookSavedByUser(userId: number, bookId: number): Promise<boolean> {
+    const savedBook = await this.prisma.bookSave.findUnique({
+      where: {
+        userId_bookId: { userId, bookId },
+      },
+    });
+    return savedBook !== null;
   }
 }
