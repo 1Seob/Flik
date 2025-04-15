@@ -106,7 +106,7 @@ export class BookController {
   }
 
   @Post('save/:fileName')
-  @ApiOperation({ summary: '책 추가' })
+  @ApiOperation({ summary: 'DB에 책 추가' })
   @ApiConsumes('multipart/form-data')
   @ApiOkResponse({ type: BookDto })
   @UseInterceptors(FileInterceptor('coverImage'))
@@ -134,7 +134,7 @@ export class BookController {
 
   @Delete(':bookId')
   @HttpCode(204)
-  @ApiOperation({ summary: '책 삭제' })
+  @ApiOperation({ summary: 'DB에서 책 삭제' })
   @ApiNoContentResponse()
   async deleteBook(
     @Param('bookId', ParseIntPipe) bookId: number,
@@ -142,6 +142,7 @@ export class BookController {
     return this.bookService.deleteBook(bookId);
   }
 
+  /*
   @Post(':bookId/like')
   @HttpCode(204)
   @UseGuards(JwtAuthGuard)
@@ -162,5 +163,41 @@ export class BookController {
     @Param('userId', ParseIntPipe) userId: number,
   ): Promise<number[]> {
     return this.bookService.getLikedBookIdsByUser(userId);
+  }
+
+  */
+  @Post(':bookId/save')
+  @HttpCode(204)
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '책 보관하기' })
+  @ApiNoContentResponse()
+  async saveBookToUser(
+    @Param('bookId', ParseIntPipe) bookId: number,
+    @CurrentUser() user: UserBaseInfo,
+  ): Promise<void> {
+    return this.bookService.saveBookToUser(bookId, user.id);
+  }
+
+  @Delete(':bookId/save')
+  @HttpCode(204)
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '책 보관 해제하기' })
+  @ApiNoContentResponse()
+  async unsaveBookFromUser(
+    @Param('bookId', ParseIntPipe) bookId: number,
+    @CurrentUser() user: UserBaseInfo,
+  ): Promise<void> {
+    return this.bookService.unsaveBookFromUser(bookId, user.id);
+  }
+
+  @Get('saved/:userId')
+  @ApiOperation({ summary: '유저가 보관한 책 ID 리스트 반환하기' })
+  @ApiOkResponse({ type: [Number] })
+  async getSavedBookIdsByUser(
+    @Param('userId', ParseIntPipe) userId: number,
+  ): Promise<number[]> {
+    return this.bookService.getSavedBookIdsByUser(userId);
   }
 }

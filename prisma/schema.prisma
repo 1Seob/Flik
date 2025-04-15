@@ -26,6 +26,7 @@ model User {
   paragraphLikes        ParagraphLike[]
   bookLikes    BookLike[]
   userBooks    UserBook[]
+  bookSaves    BookSave[]
 
   @@map("user")
 }
@@ -42,6 +43,7 @@ model Book {
   paragraphs   Paragraph[]
   likedBy      BookLike[]
   readBy       UserBook[]
+  savedBy      BookSave[]
 
   @@map("book")
 }
@@ -93,4 +95,16 @@ model UserBook {
 
   @@unique([userId, bookId])
   @@map("user-book")
+}
+
+model BookSave {
+  id      Int  @id @default(autoincrement())
+  userId  Int
+  bookId  Int
+
+  user    User @relation(fields: [userId], references: [id])
+  book    Book @relation(fields: [bookId], references: [id])
+
+  @@unique([userId, bookId])
+  @@map("book-save")
 }
