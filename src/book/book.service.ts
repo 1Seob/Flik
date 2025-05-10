@@ -161,6 +161,7 @@ export class BookService {
     return BookListDto.from(books);
   }
 
+  /*
   async toggleBookLike(bookId: number, user: UserBaseInfo): Promise<void> {
     const book = await this.bookRepository.getBookById(bookId);
     if (!book) {
@@ -178,6 +179,8 @@ export class BookService {
 
     return this.bookRepository.getLikedBookIdsByUser(userId);
   }
+
+  */
 
   async getBooksMetadata(
     offset: number,
@@ -210,5 +213,36 @@ export class BookService {
 
     // 가장 많이 할당된 날의 문단 수
     return Math.max(...perDayCounts);
+  }
+
+  async saveBookToUser(bookId: number, userId: number): Promise<void> {
+    const book = await this.bookRepository.getBookById(bookId);
+    if (!book) {
+      throw new NotFoundException('책을 찾을 수 없습니다.');
+    }
+
+    await this.bookRepository.saveBookToUser(userId, bookId);
+  }
+
+  async unsaveBookFromUser(bookId: number, userId: number): Promise<void> {
+    const book = await this.bookRepository.getBookById(bookId);
+    if (!book) {
+      throw new NotFoundException('책을 찾을 수 없습니다.');
+    }
+    const isSaved = await this.bookRepository.isBookSavedByUser(userId, bookId);
+    if (!isSaved) {
+      throw new BadRequestException('유저가 보관한 책이 아닙니다.');
+    }
+
+    await this.bookRepository.unsaveBookFromUser(userId, bookId);
+  }
+
+  async getSavedBookIdsByUser(userId: number): Promise<number[]> {
+    const user = await this.userRepository.getUserById(userId);
+    if (!user) {
+      throw new NotFoundException('사용자를 찾을 수 없습니다.');
+    }
+
+    return this.bookRepository.getSavedBookIdsByUser(userId);
   }
 }

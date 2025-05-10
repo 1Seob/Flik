@@ -31,6 +31,7 @@ model User {
   bookLikes    BookLike[]
   userBooks    UserBook[]
   userCategories UserCategory[]
+  bookSaves    BookSave[]
 
   @@map("user")
 }
@@ -47,6 +48,7 @@ model Book {
   paragraphs   Paragraph[]
   likedBy      BookLike[]
   readBy       UserBook[]
+  savedBy      BookSave[]
 
   @@map("book")
 }
@@ -124,4 +126,16 @@ model UserCategory {
 enum Gender{
   MALE    @map("MALE")
   FEMALE  @map("FEMALE")
+}
+
+model BookSave {
+  id      Int  @id @default(autoincrement())
+  userId  Int
+  bookId  Int
+
+  user    User @relation(fields: [userId], references: [id])
+  book    Book @relation(fields: [bookId], references: [id])
+
+  @@unique([userId, bookId])
+  @@map("book-save")
 }
