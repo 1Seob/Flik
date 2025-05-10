@@ -22,8 +22,20 @@ export class UserRepository {
         id: userId,
       },
       data: {
+        loginId: data.loginId ?? undefined,
+        gender: data.gender ?? undefined,
+        birthday: data.birthday ?? undefined,
+        profileImageUrl: data.profileImageUrl,
         name: data.name,
         email: data.email,
+        userCategories: data.interestCategories
+          ? {
+              deleteMany: {},
+              create: data.interestCategories.map((categoryId) => ({
+                categoryId,
+              })),
+            }
+          : undefined,
       },
     });
   }
@@ -112,5 +124,26 @@ export class UserRepository {
       ],
       readBookIds: user.userBooks.map((read) => read.bookId),
     }));
+  }
+
+  async isLoginIdExist(loginId: string): Promise<boolean> {
+    const user = await this.prisma.user.findFirst({
+      where: {
+        loginId,
+        deletedAt: null,
+      },
+    });
+
+    return !!user;
+  }
+
+  async isNameExist(name: string): Promise<boolean> {
+    const user = await this.prisma.user.findFirst({
+      where: {
+        name,
+        deletedAt: null,
+      },
+    });
+    return !!user;
   }
 }

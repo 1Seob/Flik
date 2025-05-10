@@ -2,7 +2,6 @@ import { ApiProperty } from '@nestjs/swagger';
 import { UserData } from '../type/user-data.type';
 import { Gender as PrismaGender } from '@prisma/client';
 import { GenderEnum } from '../../auth/payload/sign-up.payload';
-import { Transform } from 'class-transformer';
 
 export class UserDto {
   @ApiProperty({

@@ -1,7 +1,15 @@
-import { IsDate, IsEmail, IsString } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import {
+  IsDate,
+  IsEmail,
+  IsString,
+  IsEnum,
+  IsOptional,
+  IsArray,
+  IsInt,
+} from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Gender as PrismaGender } from '@prisma/client';
-import { Transform } from 'class-transformer';
+import { Type } from 'class-transformer';
 
 export enum GenderEnum {
   MALE = 'MALE',
@@ -25,6 +33,13 @@ export class SignUpPayload {
 
   @IsString()
   @ApiProperty({
+    description: '비밀번호 확인',
+    type: String,
+  })
+  passwordConfirm!: string;
+
+  @IsString()
+  @ApiProperty({
     description: '닉네임',
     type: String,
   })
@@ -37,6 +52,7 @@ export class SignUpPayload {
   })
   email!: string;
 
+  @IsEnum(GenderEnum)
   @ApiProperty({
     description: '성별',
     enum: GenderEnum,
@@ -44,17 +60,26 @@ export class SignUpPayload {
   gender!: PrismaGender;
 
   @IsDate()
+  @Type(() => Date)
   @ApiProperty({
     description: '생년월일',
     type: Date,
   })
   birthday!: Date;
 
-  @IsString()
-  @ApiProperty({
-    description: '프로필 이미지 URL',
-    type: String,
-    required: false,
+  @IsOptional()
+  @ApiPropertyOptional({
+    description: '프로필 이미지',
+    type: 'string',
+    format: 'binary',
   })
-  profileImageUrl?: string | null;
+  profileImage?: string;
+
+  @IsArray()
+  @IsInt({ each: true })
+  @ApiProperty({
+    description: '관심 카테고리',
+    type: [Number],
+  })
+  interestCategories!: number[];
 }

@@ -18,6 +18,11 @@ export class AuthRepository {
         email: data.email,
         password: data.password,
         name: data.name,
+        userCategories: {
+          create: data.interestCategories.map((categoryId) => ({
+            categoryId,
+          })),
+        },
       },
       select: {
         id: true,
@@ -39,9 +44,9 @@ export class AuthRepository {
         id: id,
       },
       data: {
-        loginId: data.loginId,
-        gender: data.gender,
-        birthday: data.birthday,
+        loginId: data.loginId ?? undefined,
+        gender: data.gender ?? undefined,
+        birthday: data.birthday ?? undefined,
         profileImageUrl: data.profileImageUrl,
         email: data.email,
         password: data.password,

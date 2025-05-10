@@ -13,6 +13,8 @@ import { TokenService } from './token.service';
 import { LoginPayload } from './payload/login.payload';
 import { ChangePasswordPayload } from './payload/change-password.payload';
 import { UserBaseInfo } from './type/user-base-info.type';
+import { SupabaseService } from 'src/common/services/supabase.service';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class AuthService {
@@ -20,9 +22,13 @@ export class AuthService {
     private readonly authRepository: AuthRepository,
     private readonly passwordService: BcryptPasswordService,
     private readonly tokenService: TokenService,
+    private readonly supabaseService: SupabaseService,
   ) {}
 
-  async signUp(payload: SignUpPayload): Promise<Tokens> {
+  async signUp(
+    payload: SignUpPayload,
+    profileImageFile?: Express.Multer.File,
+  ): Promise<Tokens> {
     const loginId = await this.authRepository.getUserByLoginId(payload.loginId);
     if (loginId) {
       throw new ConflictException('이미 사용중인 로그인 ID입니다.');
@@ -36,21 +42,78 @@ export class AuthService {
       throw new ConflictException('이미 사용중인 이메일입니다.');
     }
 
+    if (payload.password !== payload.passwordConfirm) {
+      throw new ConflictException('비밀번호가 일치하지 않습니다.');
+    }
+
+    if (payload.birthday > new Date()) {
+      throw new ConflictException('생년월일이 유효하지 않습니다.');
+    }
+
+    if (
+      !payload.interestCategories ||
+      payload.interestCategories.length === 0
+    ) {
+      throw new ConflictException('관심 카테고리를 선택해주세요.');
+    }
+    if (payload.interestCategories.length > 3) {
+      throw new ConflictException(
+        '관심 카테고리는 최대 3개까지 선택 가능합니다.',
+      );
+    }
+
     const hashedPassword = await this.passwordService.getEncryptPassword(
       payload.password,
     );
+
+    let profileImageUrl: string | undefined = undefined;
+    let tempPath: string | undefined = undefined;
+    let finalPath: string | undefined = undefined;
+    if (profileImageFile) {
+      tempPath = `profile-images/temp/${uuidv4()}-${profileImageFile.originalname}`;
+      const { data, error } = await this.supabaseService.uploadImage(
+        'profile-images',
+        tempPath,
+        profileImageFile.buffer,
+      );
+      if (error) {
+        throw new ConflictException('프로필 이미지 업로드에 실패했습니다.');
+      }
+      profileImageUrl = data?.path
+        ? this.supabaseService.getPublicUrl('profile-images', data.path)
+        : undefined;
+    }
 
     const inputData: SignUpData = {
       loginId: payload.loginId,
       gender: payload.gender,
       birthday: payload.birthday,
-      profileImageUrl: payload.profileImageUrl,
+      profileImageUrl: profileImageUrl,
       email: payload.email,
       password: hashedPassword,
       name: payload.name,
+      interestCategories: payload.interestCategories,
     };
 
     const createdUser = await this.authRepository.createUser(inputData);
+
+    if (tempPath && profileImageFile) {
+      finalPath = `profile-images/${createdUser.id}/${profileImageFile.originalname}`;
+      const { data, error } = await this.supabaseService.copyImage(
+        'profile-images',
+        tempPath,
+        finalPath,
+      );
+      if (error) {
+        throw new ConflictException('프로필 이미지 복사에 실패했습니다.');
+      }
+      await this.supabaseService.deleteImage('profile-images', tempPath);
+      profileImageUrl = this.supabaseService.getPublicUrl(
+        'profile-images',
+        finalPath,
+      );
+      await this.authRepository.updateUser(createdUser.id, { profileImageUrl });
+    }
 
     return this.generateTokens(createdUser.id);
   }
