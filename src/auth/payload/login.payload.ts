@@ -1,13 +1,13 @@
-import { IsEmail, IsString } from 'class-validator';
+import { IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class LoginPayload {
-  @IsEmail()
+  @IsString()
   @ApiProperty({
-    description: '이메일',
+    description: '로그인 ID',
     type: String,
   })
-  email!: string;
+  loginId!: string;
 
   @IsString()
   @ApiProperty({

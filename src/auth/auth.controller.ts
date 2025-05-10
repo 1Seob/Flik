@@ -6,7 +6,9 @@ import {
   Put,
   Req,
   Res,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -15,6 +17,7 @@ import {
   ApiOkResponse,
   ApiOperation,
   ApiTags,
+  ApiConsumes,
 } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { TokenDto } from './dto/token.dto';
@@ -25,6 +28,7 @@ import { ChangePasswordPayload } from './payload/change-password.payload';
 import { CurrentUser } from './decorator/user.decorator';
 import { UserBaseInfo } from './type/user-base-info.type';
 import { JwtAuthGuard } from './guard/jwt-auth.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('auth')
 @ApiTags('Auth API')
@@ -33,12 +37,15 @@ export class AuthController {
 
   @Post('sign-up')
   @ApiOperation({ summary: '회원가입' })
+  @ApiConsumes('multipart/form-data')
   @ApiCreatedResponse({ type: TokenDto })
+  @UseInterceptors(FileInterceptor('profileImage'))
   async signUp(
     @Body() payload: SignUpPayload,
     @Res({ passthrough: true }) res: Response,
+    @UploadedFile() profileImageFile?: Express.Multer.File,
   ): Promise<TokenDto> {
-    const tokens = await this.authService.signUp(payload);
+    const tokens = await this.authService.signUp(payload, profileImageFile);
 
     // refresh Token은 쿠키로
     res.cookie('refreshToken', tokens.refreshToken, {
