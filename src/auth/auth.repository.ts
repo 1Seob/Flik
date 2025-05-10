@@ -11,12 +11,20 @@ export class AuthRepository {
   async createUser(data: SignUpData): Promise<UserBaseInfo> {
     return this.prisma.user.create({
       data: {
+        loginId: data.loginId,
+        gender: data.gender,
+        birthday: data.birthday,
+        profileImageUrl: data.profileImageUrl,
         email: data.email,
         password: data.password,
         name: data.name,
       },
       select: {
         id: true,
+        loginId: true,
+        gender: true,
+        birthday: true,
+        profileImageUrl: true,
         email: true,
         password: true,
         name: true,
@@ -31,6 +39,10 @@ export class AuthRepository {
         id: id,
       },
       data: {
+        loginId: data.loginId,
+        gender: data.gender,
+        birthday: data.birthday,
+        profileImageUrl: data.profileImageUrl,
         email: data.email,
         password: data.password,
         name: data.name,
@@ -38,6 +50,10 @@ export class AuthRepository {
       },
       select: {
         id: true,
+        loginId: true,
+        gender: true,
+        birthday: true,
+        profileImageUrl: true,
         email: true,
         password: true,
         name: true,
@@ -54,6 +70,10 @@ export class AuthRepository {
       },
       select: {
         id: true,
+        loginId: true,
+        gender: true,
+        birthday: true,
+        profileImageUrl: true,
         email: true,
         password: true,
         name: true,
@@ -70,6 +90,50 @@ export class AuthRepository {
       },
       select: {
         id: true,
+        loginId: true,
+        gender: true,
+        birthday: true,
+        profileImageUrl: true,
+        email: true,
+        password: true,
+        name: true,
+        refreshToken: true,
+      },
+    });
+  }
+
+  async getUserByLoginId(loginId: string): Promise<UserBaseInfo | null> {
+    return this.prisma.user.findUnique({
+      where: {
+        loginId,
+        deletedAt: null,
+      },
+      select: {
+        id: true,
+        loginId: true,
+        gender: true,
+        birthday: true,
+        profileImageUrl: true,
+        email: true,
+        password: true,
+        name: true,
+        refreshToken: true,
+      },
+    });
+  }
+
+  async getUserByName(name: string): Promise<UserBaseInfo | null> {
+    return this.prisma.user.findUnique({
+      where: {
+        name,
+        deletedAt: null,
+      },
+      select: {
+        id: true,
+        loginId: true,
+        gender: true,
+        birthday: true,
+        profileImageUrl: true,
         email: true,
         password: true,
         name: true,

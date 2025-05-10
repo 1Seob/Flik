@@ -15,8 +15,12 @@ datasource db {
 
 model User {
   id           Int       @id @default(autoincrement())
-  name         String
+  loginId      String    @unique @map("login_id")
+  name         String    @unique
   email        String    @unique
+  gender       Gender
+  birthday     DateTime
+  profileImageUrl String? @map("profile_image_url")
   password     String
   refreshToken String?   @map("refresh_token")
   createdAt    DateTime  @default(now()) @map("created_at")
@@ -26,6 +30,7 @@ model User {
   paragraphLikes        ParagraphLike[]
   bookLikes    BookLike[]
   userBooks    UserBook[]
+  userCategories UserCategory[]
 
   @@map("user")
 }
@@ -57,6 +62,15 @@ model Paragraph {
   likes        ParagraphLike[]
 
   @@map("paragraph")
+}
+
+model Category {
+  id           Int       @id @default(autoincrement())
+  name         String    @unique
+
+  favoredBy   UserCategory[]
+
+  @@map("category")
 }
 
 model ParagraphLike {
@@ -93,4 +107,21 @@ model UserBook {
 
   @@unique([userId, bookId])
   @@map("user-book")
+}
+
+model UserCategory {
+  id      Int  @id @default(autoincrement())
+  userId  Int
+  categoryId  Int
+
+  user    User @relation(fields: [userId], references: [id])
+  category    Category @relation(fields: [categoryId], references: [id])
+
+  @@unique([userId, categoryId])
+  @@map("user-category")
+}
+
+enum Gender{
+  MALE    @map("MALE")
+  FEMALE  @map("FEMALE")
 }

@@ -23,8 +23,16 @@ export class AuthService {
   ) {}
 
   async signUp(payload: SignUpPayload): Promise<Tokens> {
-    const user = await this.authRepository.getUserByEmail(payload.email);
-    if (user) {
+    const loginId = await this.authRepository.getUserByLoginId(payload.loginId);
+    if (loginId) {
+      throw new ConflictException('이미 사용중인 로그인 ID입니다.');
+    }
+    const name = await this.authRepository.getUserByName(payload.name);
+    if (name) {
+      throw new ConflictException('이미 사용중인 닉네임입니다.');
+    }
+    const email = await this.authRepository.getUserByEmail(payload.email);
+    if (email) {
       throw new ConflictException('이미 사용중인 이메일입니다.');
     }
 
@@ -33,6 +41,10 @@ export class AuthService {
     );
 
     const inputData: SignUpData = {
+      loginId: payload.loginId,
+      gender: payload.gender,
+      birthday: payload.birthday,
+      profileImageUrl: payload.profileImageUrl,
       email: payload.email,
       password: hashedPassword,
       name: payload.name,
@@ -44,11 +56,10 @@ export class AuthService {
   }
 
   async login(payload: LoginPayload): Promise<Tokens> {
-    const user = await this.authRepository.getUserByEmail(payload.email);
+    const user = await this.authRepository.getUserByLoginId(payload.loginId);
     if (!user) {
-      throw new NotFoundException('존재하지 않는 이메일입니다.');
+      throw new NotFoundException('존재하지 않는 로그인 ID입니다.');
     }
-
     const isPasswordMatch = await this.passwordService.validatePassword(
       payload.password,
       user.password,
