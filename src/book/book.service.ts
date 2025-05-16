@@ -51,6 +51,7 @@ export class BookService {
 
     if (coverImageFile) {
       const { data, error } = await this.supabaseService.uploadImage(
+        'book-covers',
         coverImageFile.originalname,
         coverImageFile.buffer,
       );
@@ -58,7 +59,7 @@ export class BookService {
         throw new BadRequestException('이미지 업로드 실패');
       }
       coverImageUrl = data?.path
-        ? this.supabaseService.getPublicUrl(data.path)
+        ? this.supabaseService.getPublicUrl('book-covers', data.path)
         : undefined;
     }
 
@@ -123,7 +124,10 @@ export class BookService {
     if (coverImageFile) {
       // 기존 표지 이미지가 있다면 Supabase에서 삭제
       if (book.coverImageUrl) {
-        await this.supabaseService.deleteImage(book.coverImageUrl);
+        await this.supabaseService.deleteImage(
+          'book-covers',
+          book.coverImageUrl,
+        );
       }
 
       // Supabase 업로드 실행 전, 파일 이름과 버퍼 확인
@@ -132,6 +136,7 @@ export class BookService {
 
       // 새 표지 이미지 업로드
       const { data, error } = await this.supabaseService.uploadImage(
+        'book-covers',
         coverImageFile.originalname,
         coverImageFile.buffer,
       );
@@ -142,7 +147,7 @@ export class BookService {
       }
 
       coverImageUrl = data?.path
-        ? this.supabaseService.getPublicUrl(data.path)
+        ? this.supabaseService.getPublicUrl('book-covers', data.path)
         : undefined;
     }
 
