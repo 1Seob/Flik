@@ -7,7 +7,8 @@ import {
 import { BookReadRepository } from './bookread.repository';
 import { BookRepository } from 'src/book/book.repository';
 import { UserBaseInfo } from '../auth/type/user-base-info.type';
-import { ReadingProgressDto } from './dto/reading-progress.dto';
+import { ReadingProgressListDto } from './dto/reading-progress.dto';
+import { BookData } from 'src/book/type/book-data.type';
 
 @Injectable()
 export class BookReadService {
@@ -51,18 +52,6 @@ export class BookReadService {
     return booksRead;
   }
 
-  async getBooksReadLastWeek(user: UserBaseInfo): Promise<number[]> {
-    const booksRead = await this.bookReadRepository.getBooksReadLastWeek(
-      user.id,
-    );
-
-    if (!booksRead) {
-      throw new BadRequestException('책 읽기 정보 조회 실패');
-    }
-
-    return booksRead;
-  }
-
   async completeBookRead(user: UserBaseInfo, bookId: number): Promise<void> {
     const book = await this.bookRepository.getBookById(bookId);
     if (!book) {
@@ -97,34 +86,27 @@ export class BookReadService {
     return booksCompleted;
   }
 
-  async getBooksCompletedLastWeek(user: UserBaseInfo): Promise<number[]> {
-    const booksCompleted =
-      await this.bookReadRepository.getBooksCompletedLastWeek(user.id);
-
-    if (!booksCompleted) {
-      throw new BadRequestException('책 완독 정보 조회 실패');
-    }
-
-    return booksCompleted;
-  }
-
   async getDailyReadingProgress(
     user: UserBaseInfo,
     year: number,
     month: number,
     day: number,
-  ): Promise<ReadingProgressDto[]> {
-    const books,
-      progressRates = await this.bookReadRepository.getDailyReadingProgress(
-        user.id,
-        year,
-        month,
-        day,
-      );
-    if (!books || !progressRates) {
-      throw new BadRequestException('읽기 진행률 조회 실패');
-    }
-
-    return ReadingProgressDto.fromArray(books, progressRates);
+  ): Promise<ReadingProgressListDto> {
+    const data = await this.bookReadRepository.getDailyReadingProgress(
+      user.id,
+      year,
+      month,
+      day,
+    );
+    const books: BookData[] = data.map((item) => item.books);
+    const pagesRead: number[] = data.map((item) => item.pagesRead);
+    const dailyGoals: number[] = data.map((item) => item.dailyGoal);
+    const progressRates: number[] = data.map((item) => item.progressRate);
+    return ReadingProgressListDto.from(
+      books,
+      pagesRead,
+      dailyGoals,
+      progressRates,
+    );
   }
 }
