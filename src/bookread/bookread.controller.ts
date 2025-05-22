@@ -1,21 +1,14 @@
 import {
-  Body,
   Controller,
-  Delete,
   Get,
   HttpCode,
-  Param,
-  Patch,
   Post,
   ParseIntPipe,
   Query,
-  UseInterceptors,
-  UploadedFile,
   UseGuards,
 } from '@nestjs/common';
 import { BookReadService } from './bookread.service';
 import {
-  ApiConsumes,
   ApiNoContentResponse,
   ApiOkResponse,
   ApiOperation,
@@ -27,7 +20,10 @@ import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorator/user.decorator';
 import { UserBaseInfo } from '../auth/type/user-base-info.type';
 import { BookReadQuery } from './query/bookread.query';
-import { ReadingProgressDto } from './dto/reading-progress.dto';
+import {
+  ReadingProgressDto,
+  ReadingProgressListDto,
+} from './dto/reading-progress.dto';
 
 @Controller('bookread')
 @ApiTags('BookRead API')
@@ -50,7 +46,7 @@ export class BookReadController {
   @Get('read/month')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: '유저의 월별 읽은 책 조회' })
+  @ApiOperation({ summary: '유저의 월별 읽은 책 ID 조회' })
   @ApiOkResponse({
     description: '책 읽은 날짜 월별 조회 성공',
     type: [Number],
@@ -75,23 +71,10 @@ export class BookReadController {
     return this.bookReadService.getBooksReadByMonth(user, year, month);
   }
 
-  @Get('read/week')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: '유저가 최근 한 주간 읽은 책 조회' })
-  @ApiOkResponse({
-    type: [Number],
-  })
-  async getBooksReaddLastWeek(
-    @CurrentUser() user: UserBaseInfo,
-  ): Promise<number[]> {
-    return this.bookReadService.getBooksReadLastWeek(user);
-  }
-
   @Get('read/complete')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: '유저의 월별 완독한 책 조회' })
+  @ApiOperation({ summary: '유저의 월별 완독한 책 ID 조회' })
   @ApiOkResponse({
     description: '책 완독한 날짜 월별 조회 성공',
     type: [Number],
@@ -114,19 +97,6 @@ export class BookReadController {
     @Query('month', ParseIntPipe) month: number,
   ): Promise<number[]> {
     return this.bookReadService.getBooksCompletedByMonth(user, year, month);
-  }
-
-  @Get('read/complete/week')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: '유저가 최근 한 주간 완독한 책 조회' })
-  @ApiOkResponse({
-    type: [Number],
-  })
-  async getBooksCompletedLastWeek(
-    @CurrentUser() user: UserBaseInfo,
-  ): Promise<number[]> {
-    return this.bookReadService.getBooksCompletedLastWeek(user);
   }
 
   @Post('read/complete')
@@ -175,7 +145,7 @@ export class BookReadController {
     @Query('year', ParseIntPipe) year: number,
     @Query('month', ParseIntPipe) month: number,
     @Query('day', ParseIntPipe) day: number,
-  ): Promise<void> {
+  ): Promise<ReadingProgressListDto> {
     return this.bookReadService.getDailyReadingProgress(user, year, month, day);
   }
 }

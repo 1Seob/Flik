@@ -3,13 +3,10 @@ import { Injectable } from '@nestjs/common';
 import {
   startOfMonth,
   endOfMonth,
-  subHours,
   startOfDay,
-  subDays,
   addHours,
   endOfDay,
 } from 'date-fns';
-import { start } from 'repl';
 import { BookData } from 'src/book/type/book-data.type';
 
 @Injectable()
@@ -80,62 +77,15 @@ export class BookReadRepository {
     year: number,
     month: number,
   ): Promise<number[]> {
-    // 1. KST 월 경계 생성
+    // KST 월 경계 생성
     const kstStart = startOfMonth(new Date(year, month - 1));
     const kstEnd = endOfMonth(new Date(year, month - 1));
+    const startUtc = addHours(kstStart, 9);
+    const endUtc = addHours(kstEnd, 9);
 
-    // 2. UTC 기준으로 -9시간 보정 (KST → UTC 변환)
-    const startUtc = subHours(kstStart, 9); // KST 00:00 → UTC 15:00 (전날)
-    const endUtc = subHours(kstEnd, 9); // KST 23:59:59 → UTC 14:59:59
-
-    // 3. Prisma 조회
-    const activities = await this.prisma.userReadingActivity.findMany({
-      where: {
-        userId,
-        readAt: {
-          gte: startUtc,
-          lte: endUtc,
-        },
-      },
-      select: {
-        book: {
-          select: {
-            id: true,
-            title: true,
-            author: true,
-            coverImageUrl: true,
-          },
-        },
-      },
-    });
-
-    // 4. 중복 제거 (Map 사용)
-    const uniqueBooksMap = new Map<number, (typeof activities)[0]['book']>();
-    for (const activity of activities) {
-      uniqueBooksMap.set(activity.book.id, activity.book);
-    }
-    return Array.from(uniqueBooksMap.values()).map((book) => book.id);
-  }
-
-  async getBooksReadLastWeek(userId: number): Promise<number[]> {
-    const now = new Date();
-
-    const kstOffsetMs = 9 * 60 * 60 * 1000;
-    const kstNow = new Date(now.getTime() + kstOffsetMs);
-
-    // KST 5/12 00:00 ~ 5/18 23:59:59
-    const kstStart = startOfDay(subDays(kstNow, 6));
-    const kstEnd = endOfDay(kstNow); // 오늘 끝까지 포함
-
-    // UTC 변환
-    const startUtc = new Date(kstStart.getTime() - kstOffsetMs);
-    const endUtc = new Date(kstEnd.getTime() - kstOffsetMs);
-
-    // 검증 출력
     console.log('Start UTC:', startUtc.toISOString());
     console.log('End UTC:', endUtc.toISOString());
 
-    // 5. Prisma 조회
     const activities = await this.prisma.userReadingActivity.findMany({
       where: {
         userId,
@@ -156,11 +106,11 @@ export class BookReadRepository {
       },
     });
 
+    // 중복 제거
     const uniqueBooksMap = new Map<number, (typeof activities)[0]['book']>();
     for (const activity of activities) {
       uniqueBooksMap.set(activity.book.id, activity.book);
     }
-
     return Array.from(uniqueBooksMap.values()).map((book) => book.id);
   }
 
@@ -189,52 +139,8 @@ export class BookReadRepository {
     const kstStart = startOfMonth(new Date(year, month - 1));
     const kstEnd = endOfMonth(new Date(year, month - 1));
 
-    const startUtc = subHours(kstStart, 9);
-    const endUtc = subHours(kstEnd, 9);
-
-    const activities = await this.prisma.userReadingActivity.findMany({
-      where: {
-        userId,
-        completedAt: {
-          gte: startUtc,
-          lte: endUtc,
-        },
-      },
-      select: {
-        book: {
-          select: {
-            id: true,
-            title: true,
-            author: true,
-            coverImageUrl: true,
-          },
-        },
-      },
-    });
-    const uniqueBooksMap = new Map<number, (typeof activities)[0]['book']>();
-    for (const activity of activities) {
-      uniqueBooksMap.set(activity.book.id, activity.book);
-    }
-    return Array.from(uniqueBooksMap.values()).map((book) => book.id);
-  }
-
-  async getBooksCompletedLastWeek(userId: number): Promise<number[]> {
-    const now = new Date();
-
-    const kstOffsetMs = 9 * 60 * 60 * 1000;
-    const kstNow = new Date(now.getTime() + kstOffsetMs);
-
-    // KST 5/12 00:00 ~ 5/18 23:59:59
-    const kstStart = startOfDay(subDays(kstNow, 6));
-    const kstEnd = endOfDay(kstNow); // 오늘 끝까지 포함
-
-    // UTC 변환
-    const startUtc = new Date(kstStart.getTime() - kstOffsetMs);
-    const endUtc = new Date(kstEnd.getTime() - kstOffsetMs);
-
-    // 검증 출력
-    console.log('Start UTC:', startUtc.toISOString());
-    console.log('End UTC:', endUtc.toISOString());
+    const startUtc = addHours(kstStart, 9);
+    const endUtc = addHours(kstEnd, 9);
 
     const activities = await this.prisma.userReadingActivity.findMany({
       where: {
@@ -267,12 +173,22 @@ export class BookReadRepository {
     year: number,
     month: number,
     day: number,
-  ): Promise<{ books: BookData; progressRate: number }[]> {
+  ): Promise<
+    {
+      books: BookData;
+      pagesRead: number;
+      dailyGoal: number;
+      progressRate: number;
+    }[]
+  > {
     const kstStart = startOfDay(new Date(year, month - 1, day));
     const kstEnd = endOfDay(new Date(year, month - 1, day));
 
-    const startUtc = subHours(kstStart, 9);
-    const endUtc = subHours(kstEnd, 9);
+    const startUtc = addHours(kstStart, 9);
+    const endUtc = addHours(kstEnd, 9);
+
+    console.log('Start UTC:', startUtc.toISOString());
+    console.log('End UTC:', endUtc.toISOString());
 
     const activities = await this.prisma.userReadingActivity.findMany({
       where: {
@@ -322,6 +238,8 @@ export class BookReadRepository {
 
       return {
         books: book,
+        pagesRead: pagesReadCount,
+        dailyGoal: dailyGoal || 0,
         progressRate,
       };
     });
