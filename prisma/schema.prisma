@@ -32,6 +32,7 @@ model User {
   userBooks    UserBook[]
   userCategories UserCategory[]
   bookSaves    BookSave[]
+  userReadingActivities UserReadingActivity[]
 
   @@map("user")
 }
@@ -49,6 +50,7 @@ model Book {
   likedBy      BookLike[]
   readBy       UserBook[]
   savedBy      BookSave[]
+  readingActivities          UserReadingActivity[]
 
   @@map("book")
 }
@@ -62,6 +64,7 @@ model Paragraph {
   book         Book      @relation(fields: [bookId], references: [id])
 
   likes        ParagraphLike[]
+  readingActivities          UserReadingActivity[]
 
   @@map("paragraph")
 }
@@ -138,4 +141,22 @@ model BookSave {
 
   @@unique([userId, bookId])
   @@map("book-save")
+}
+
+model UserReadingActivity {
+  id          Int     @id @default(autoincrement())
+  userId      Int     @map("user_id")
+  bookId      Int     @map("book_id")
+  paragraphId Int     @map("paragraph_id")
+  order       Int
+  readAt      DateTime   @default(now()) @map("read_at")             // 읽은 시점
+  completedAt DateTime?  @default(now()) @map("completed_at")        // 완독 시점
+  dailyGoal   Int?       @map("daily_goal")                          // 하루 목표 페이지 수
+
+  user        User       @relation(fields: [userId], references: [id])
+  book        Book       @relation(fields: [bookId], references: [id])
+  paragraph   Paragraph  @relation(fields: [paragraphId], references: [id])
+
+  @@unique([userId, bookId, paragraphId, readAt])
+  @@map("user-reading-activity")
 }

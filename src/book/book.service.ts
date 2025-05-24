@@ -15,7 +15,6 @@ import { UpdateBookData } from './type/update-book-data.type';
 import { BookQuery } from './query/book.query';
 import { MetadataListDto } from './dto/metadata.dto';
 import { SupabaseService } from 'src/common/services/supabase.service';
-import { UserBaseInfo } from '../auth/type/user-base-info.type';
 
 @Injectable()
 export class BookService {

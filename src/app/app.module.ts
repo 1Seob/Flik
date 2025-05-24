@@ -8,6 +8,7 @@ import { UserModule } from '../user/user.module';
 import { AuthModule } from '../auth/auth.module';
 import { BookModule } from '../book/book.module';
 import { ParagraphModule } from '../paragraph/paragraph.module';
+import { BookReadModule } from '../bookread/bookread.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { ParagraphModule } from '../paragraph/paragraph.module';
     ParagraphModule,
     configModule,
     CommonModule,
+    BookReadModule,
   ],
   controllers: [AppController],
   providers: [AppService],
