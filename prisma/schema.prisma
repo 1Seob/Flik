@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,95 +8,93 @@ datasource db {
 }
 
 model User {
-  id           Int       @id @default(autoincrement())
-  loginId      String    @unique @map("login_id")
-  name         String    @unique
-  email        String    @unique
-  gender       Gender
-  birthday     DateTime
-  profileImageUrl String? @map("profile_image_url")
-  password     String
-  refreshToken String?   @map("refresh_token")
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime  @updatedAt @map("updated_at")
-  deletedAt    DateTime? @map("deleted_at")
-
+  name                  String                  @unique
+  email                 String                  @unique
+  password              String
+  createdAt             DateTime                @default(now()) @map("created_at")
+  updatedAt             DateTime                @updatedAt @map("updated_at")
+  id                    Int                     @id @default(autoincrement())
+  deletedAt             DateTime?               @map("deleted_at")
+  refreshToken          String?                 @map("refresh_token")
+  birthday              DateTime
+  gender                Gender
+  loginId               String                  @unique @map("login_id")
+  profileImageUrl       String?                 @map("profile_image_url")
+  bookLikes             BookLike[]
+  bookSaves             BookSave[]
   paragraphLikes        ParagraphLike[]
-  bookLikes    BookLike[]
-  userBooks    UserBook[]
-  userCategories UserCategory[]
-  bookSaves    BookSave[]
+  userBooks             UserBook[]
+  userCategories        UserCategory[]
+  user_reading_activity user_reading_activity[]
 
   @@map("user")
 }
 
 model Book {
-  id           Int       @id @default(autoincrement())
-  title        String
-  author       String
-  coverImageUrl String?
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime  @updatedAt @map("updated_at")
-  deletedAt    DateTime? @map("deleted_at")
-
-  paragraphs   Paragraph[]
-  likedBy      BookLike[]
-  readBy       UserBook[]
-  savedBy      BookSave[]
+  id                    Int                     @id @default(autoincrement())
+  title                 String
+  author                String
+  createdAt             DateTime                @default(now()) @map("created_at")
+  updatedAt             DateTime                @updatedAt @map("updated_at")
+  deletedAt             DateTime?               @map("deleted_at")
+  coverImageUrl         String?
+  likedBy               BookLike[]
+  savedBy               BookSave[]
+  paragraphs            Paragraph[]
+  readBy                UserBook[]
+  user_reading_activity user_reading_activity[]
 
   @@map("book")
 }
 
 model Paragraph {
-  id           Int       @id @default(autoincrement())
-  content      String
-  order        Int
-  bookId       Int
-
-  book         Book      @relation(fields: [bookId], references: [id])
-
-  likes        ParagraphLike[]
+  id                    Int                     @id @default(autoincrement())
+  content               String
+  order                 Int
+  bookId                Int
+  book                  Book                    @relation(fields: [bookId], references: [id])
+  likes                 ParagraphLike[]
+  user_reading_activity user_reading_activity[]
 
   @@map("paragraph")
 }
 
 model Category {
-  id           Int       @id @default(autoincrement())
-  name         String    @unique
-
-  favoredBy   UserCategory[]
+  id        Int            @id @default(autoincrement())
+  name      String         @unique
+  favoredBy UserCategory[]
 
   @@map("category")
 }
 
 model ParagraphLike {
-  id           Int       @id @default(autoincrement())
-  userId       Int
-  paragraphId  Int
-
-  user         User       @relation(fields: [userId], references: [id])
-  paragraph    Paragraph  @relation(fields: [paragraphId], references: [id])
+  id          Int       @id @default(autoincrement())
+  userId      Int
+  paragraphId Int
+  paragraph   Paragraph @relation(fields: [paragraphId], references: [id])
+  user        User      @relation(fields: [userId], references: [id])
 
   @@unique([userId, paragraphId])
   @@map("paragraph-like")
 }
 
 model BookLike {
-  id      Int  @id @default(autoincrement())
-  userId  Int
-  bookId  Int
-
-  user    User @relation(fields: [userId], references: [id])
-  book    Book @relation(fields: [bookId], references: [id])
+  id     Int  @id @default(autoincrement())
+  userId Int
+  bookId Int
+  book   Book @relation(fields: [bookId], references: [id])
+  user   User @relation(fields: [userId], references: [id])
 
   @@unique([userId, bookId])
   @@map("book-like")
 }
 
 model UserBook {
-  id      Int  @id @default(autoincrement())
-  userId  Int
-  bookId  Int
+  id                     Int      @id @default(autoincrement())
+  userId                 Int
+  bookId                 Int
+  lastReadParagraphOrder Int     @default(0)
+  updatedAt              DateTime @updatedAt @map("updated_at")
 
   user    User @relation(fields: [userId], references: [id])
   book    Book @relation(fields: [bookId], references: [id])
@@ -112,30 +104,45 @@ model UserBook {
 }
 
 model UserCategory {
-  id      Int  @id @default(autoincrement())
-  userId  Int
-  categoryId  Int
-
-  user    User @relation(fields: [userId], references: [id])
-  category    Category @relation(fields: [categoryId], references: [id])
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  categoryId Int
+  category   Category @relation(fields: [categoryId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
 
   @@unique([userId, categoryId])
   @@map("user-category")
 }
 
-enum Gender{
-  MALE    @map("MALE")
-  FEMALE  @map("FEMALE")
-}
-
 model BookSave {
-  id      Int  @id @default(autoincrement())
-  userId  Int
-  bookId  Int
-
-  user    User @relation(fields: [userId], references: [id])
-  book    Book @relation(fields: [bookId], references: [id])
+  id     Int  @id @default(autoincrement())
+  userId Int
+  bookId Int
+  book   Book @relation(fields: [bookId], references: [id])
+  user   User @relation(fields: [userId], references: [id])
 
   @@unique([userId, bookId])
   @@map("book-save")
+}
+
+model user_reading_activity {
+  id           Int       @id @default(autoincrement())
+  user_id      Int
+  book_id      Int
+  paragraph_id Int
+  order        Int
+  read_at      DateTime  @default(now())
+  completed_at DateTime? @default(now())
+  daily_goal   Int?
+  book         Book      @relation(fields: [book_id], references: [id])
+  paragraph    Paragraph @relation(fields: [paragraph_id], references: [id])
+  user         User      @relation(fields: [user_id], references: [id])
+
+  @@unique([user_id, book_id, paragraph_id, read_at])
+  @@map("user-reading-activity")
+}
+
+enum Gender {
+  MALE   @map("MALE")
+  FEMALE @map("FEMALE")
 }
