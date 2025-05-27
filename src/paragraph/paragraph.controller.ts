@@ -21,7 +21,7 @@ import { UserBaseInfo } from '../auth/type/user-base-info.type';
 import { ApiTags } from '@nestjs/swagger';
 
 @Controller('paragraphs')
-@ApiTags('Paragraphs API')
+@ApiTags('Paragraph API')
 export class ParagraphController {
   constructor(private readonly paragraphService: ParagraphService) {}
 
@@ -54,5 +54,14 @@ export class ParagraphController {
     @Param('paragraphId', ParseIntPipe) paragraphId: number,
   ): Promise<number> {
     return this.paragraphService.getParagraphLikeCount(paragraphId);
+  }
+
+  @Get('likes/:userId')
+  @ApiOperation({ summary: '유저가 좋아요한 문단 ID 리스트 반환' })
+  @ApiOkResponse({ type: [Number] })
+  async getLikedParagraphs(
+    @Param('userId', ParseIntPipe) userId: number,
+  ): Promise<number[]> {
+    return this.paragraphService.getLikedParagraphIdsByUser(userId);
   }
 }

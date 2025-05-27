@@ -4,11 +4,12 @@ import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { HttpExceptionFilter } from './common/filter/exception.filter';
 import * as cookieParser from 'cookie-parser';
+import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const configService = app.get(ConfigService);
 
-  // class validator 세팅
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
@@ -22,18 +23,18 @@ async function bootstrap() {
   app.enableCors();
   app.use(cookieParser());
 
-  // swagger 세팅
   const config = new DocumentBuilder()
-    .setTitle('Eventory Server')
-    .setDescription('Eventory API description')
+    .setTitle('Flik Server')
+    .setDescription('Flik API description')
     .setVersion('1.0')
-    .addTag('Eventory')
+    .addTag('Flik')
     .addBearerAuth()
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('docs', app, document);
 
-  await app.listen(3000);
+  const port = process.env.PORT || 8000; // Cloud Run 환경변수를 사용
+  await app.listen(port, '0.0.0.0'); // '0.0.0.0' 바인딩도 권장
 }
 bootstrap();

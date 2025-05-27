@@ -12,11 +12,19 @@ import * as fs from 'fs';
  */
 
 export function parsing(fileName: string): string[] {
+  function removeNumericLines(text: string): string {
+    return text
+      .split('\n') // 줄 단위로 분할
+      .filter((line) => !/^\d+$/.test(line.trim())) // 숫자로만 구성된 라인이 아니면 통과
+      .join('\n'); // 다시 합침
+  }
+
   // 1) 파일 읽기
   let rawText = fs.readFileSync(fileName, 'utf-8');
+  rawText = removeNumericLines(rawText); // 숫자로만 구성된 줄 제거
 
-  const minLen = 1000; //문단 최소 길이(문자 수)
-  const maxLen = 1300; //문단 최대 길이(문자 수)
+  const minLen = 130; //문단 최소 길이(문자 수)
+  const maxLen = 350; //문단 최대 길이(문자 수)
 
   // 2) 빈 줄을 기준으로 문단 분리
   const lines = rawText.replace(/\r\n/g, '\n').split('\n');
@@ -137,4 +145,31 @@ export function parsing(fileName: string): string[] {
   }
 
   return finalParagraphs;
+}
+
+/**
+ * 문단을 30일치로 나누는 함수
+ */
+export function distributeParagraphs(paragraphs: number[]): number[][] {
+  const totalParagraphs = paragraphs.length;
+  const days = 30;
+
+  if (totalParagraphs === 0) return Array.from({ length: days }, () => []);
+
+  const baseCount = Math.floor(totalParagraphs / days); // 기본 할당할 문단 개수
+  const remainder = totalParagraphs % days; // 남은 문단 개수
+
+  const distributed: number[][] = [];
+  let index = 0;
+
+  for (let i = 0; i < days; i++) {
+    // 앞쪽부터 remainder 개수만큼 하루에 하나씩 추가 배정
+    const extra = i < remainder ? 1 : 0;
+    distributed.push(
+      Array.from({ length: baseCount + extra }, (_, k) => index + k),
+    );
+    index += baseCount + extra;
+  }
+
+  return distributed;
 }
