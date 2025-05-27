@@ -212,7 +212,7 @@ export class BookController {
   ): Promise<{ lastReadParagraphOrder: number }> {
     return this.bookService.getLastReadParagraph(bookId, user.id);
   }
-  
+
   @Patch(':bookId/continue')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
@@ -223,13 +223,19 @@ export class BookController {
     @Body() body: { order: number },
     @CurrentUser() user: UserBaseInfo,
   ): Promise<void> {
-    return this.bookService.updateLastReadParagraph(bookId, user.id, body.order);
+    return this.bookService.updateLastReadParagraph(
+      bookId,
+      user.id,
+      body.order,
+    );
   }
 
   @Get(':bookId/chapters/:day')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: '지정한 날짜에 해당하는 문단 리스트 조회 (챕터 이동)' })
+  @ApiOperation({
+    summary: '지정한 날짜에 해당하는 문단 리스트 조회 (챕터 이동)',
+  })
   @ApiOkResponse({ type: [String] })
   async getParagraphsForDay(
     @Param('bookId', ParseIntPipe) bookId: number,

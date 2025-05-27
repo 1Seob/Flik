@@ -247,14 +247,21 @@ export class BookRepository {
     return savedBook !== null;
   }
 
-  async getUserBook(userId: number, bookId: number): Promise<{ lastReadParagraphOrder: number } | null> {
+  async getUserBook(
+    userId: number,
+    bookId: number,
+  ): Promise<{ lastReadParagraphOrder: number } | null> {
     return this.prisma.userBook.findUnique({
       where: { userId_bookId: { userId, bookId } },
       select: { lastReadParagraphOrder: true },
     });
   }
 
-  async createUserBook(userId: number, bookId: number, order = 0): Promise<void> {
+  async createUserBook(
+    userId: number,
+    bookId: number,
+    order = 0,
+  ): Promise<void> {
     await this.prisma.userBook.create({
       data: {
         userId,
@@ -264,7 +271,6 @@ export class BookRepository {
     });
   }
 
-
   async getLastReadParagraph(bookId: number, userId: number): Promise<number> {
     const record = await this.prisma.userBook.findUnique({
       where: { userId_bookId: { userId, bookId } },
@@ -273,20 +279,25 @@ export class BookRepository {
     return record?.lastReadParagraphOrder ?? 0;
   }
 
-  async updateLastReadParagraph(bookId: number, userId: number, order: number): Promise<void> {
-  await this.prisma.userBook.update({
-    where: { userId_bookId: { userId, bookId } },
-    data: {
-      lastReadParagraphOrder: order,
-      updatedAt: new Date(), // 강제로 업데이트
-    },
-  });
-}
-
+  async updateLastReadParagraph(
+    bookId: number,
+    userId: number,
+    order: number,
+  ): Promise<void> {
+    await this.prisma.userBook.update({
+      where: { userId_bookId: { userId, bookId } },
+      data: {
+        lastReadParagraphOrder: order,
+        updatedAt: new Date(), // 강제로 업데이트
+      },
+    });
+  }
 
   async getParagraphsByDay(bookId: number, day: number): Promise<string[]> {
     const all = await this.getParagraphsByBookId(bookId);
-    const distributed = distributeParagraphs(Array.from({ length: all.length }, (_, i) => i));
+    const distributed = distributeParagraphs(
+      Array.from({ length: all.length }, (_, i) => i),
+    );
     const chapter = distributed[day - 1] || [];
     return chapter.map((i) => all[i].content);
   }
@@ -299,7 +310,7 @@ export class BookRepository {
     });
 
     const uniqueDates = new Set(
-      records.map((r) => r.updatedAt.toISOString().slice(0, 10))
+      records.map((r) => r.updatedAt.toISOString().slice(0, 10)),
     );
 
     let streak = 0;
