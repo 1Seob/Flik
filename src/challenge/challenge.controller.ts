@@ -1,7 +1,20 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Patch, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  UseGuards,
+} from '@nestjs/common';
 import { ChallengeService } from './challenge.service';
 import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
-import { ApiBearerAuth, ApiTags, ApiOperation, ApiOkResponse } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiTags,
+  ApiOperation,
+  ApiOkResponse,
+} from '@nestjs/swagger';
 import { CurrentUser } from 'src/auth/decorator/user.decorator';
 import { UserBaseInfo } from 'src/auth/type/user-base-info.type';
 import { CreateChallengePayload } from './dto/create-challenge.payload';
@@ -27,7 +40,10 @@ export class ChallengeController {
 
   @Get(':bookId/status')
   @ApiOperation({ summary: '챌린지 상태 조회 (D-day, 성공 여부, 독서 날짜들)' })
-  @ApiOkResponse({ type: ChallengeStatusDto, description: '챌린지 상태 조회 성공' })
+  @ApiOkResponse({
+    type: ChallengeStatusDto,
+    description: '챌린지 상태 조회 성공',
+  })
   getStatus(
     @Param('bookId', ParseIntPipe) bookId: number,
     @CurrentUser() user: UserBaseInfo,

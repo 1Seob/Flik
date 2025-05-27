@@ -8,14 +8,29 @@ import { ChallengeStatusDto } from './dto/challenge-status.dto';
 export class ChallengeService {
   constructor(private readonly challengeRepository: ChallengeRepository) {}
 
-  async setChallenge(userId: number, bookId: number, payload: CreateChallengePayload) {
-    return this.challengeRepository.updateChallenge(userId, bookId, payload.challengeType);
+  async setChallenge(
+    userId: number,
+    bookId: number,
+    payload: CreateChallengePayload,
+  ) {
+    return this.challengeRepository.updateChallenge(
+      userId,
+      bookId,
+      payload.challengeType,
+    );
   }
 
-  async getChallengeStatus(userId: number, bookId: number): Promise<ChallengeStatusDto> {
+  async getChallengeStatus(
+    userId: number,
+    bookId: number,
+  ): Promise<ChallengeStatusDto> {
     const data = await this.challengeRepository.getChallenge(userId, bookId);
 
-    if (!data || !data.challengeStartDate || data.challengeType === ChallengeType.NONE) {
+    if (
+      !data ||
+      !data.challengeStartDate ||
+      data.challengeType === ChallengeType.NONE
+    ) {
       throw new NotFoundException('챌린지가 없습니다.');
     }
 
@@ -25,7 +40,9 @@ export class ChallengeService {
     const duration = data.challengeType === ChallengeType.WEEKLY ? 7 : 30;
     const dDay = Math.max(
       0,
-      Math.ceil((start.getTime() + 86400000 * duration - now.getTime()) / 86400000),
+      Math.ceil(
+        (start.getTime() + 86400000 * duration - now.getTime()) / 86400000,
+      ),
     );
 
     const readDays: string[] = [];

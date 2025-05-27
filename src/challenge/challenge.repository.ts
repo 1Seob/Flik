@@ -6,7 +6,11 @@ import { ChallengeType } from './enums/challenge-type.enum';
 export class ChallengeRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async updateChallenge(userId: number, bookId: number, challengeType: ChallengeType) {
+  async updateChallenge(
+    userId: number,
+    bookId: number,
+    challengeType: ChallengeType,
+  ) {
     return this.prisma.userBook.update({
       where: { userId_bookId: { userId, bookId } },
       data: {
